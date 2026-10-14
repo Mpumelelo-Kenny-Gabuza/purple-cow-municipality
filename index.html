@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purple Cow Municipality - Service Delivery Monitoring Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+</head>
+
+<body>
+    <!-- ══════════════════════════════════════ DISTRICT LANDING SCREEN ══════════════════════════════════════ -->
+    <div id="s-district">
+
+        <!-- District topbar -->
+        <div class="district-topbar">
+            <div style="display:flex;align-items:center;gap:14px;">
+                <div
+                    style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 14px rgba(201,162,39,.5);flex-shrink:0;">
+                    🏛️</div>
+                <div>
+                    <div
+                        style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink);">
+                        Purple Cow Municipality</div>
+                    <div style="font-size:11px;color:var(--text2);font-weight:500;">Municipality Command Centre ·
+                        Service Delivery Overview</div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div class="live-badge">
+                    <div class="ldot"></div> LIVE MUNICIPALITY VIEW
+                </div>
+                <div id="dist-clock" style="font-size:12px;color:var(--text2);font-weight:600;">—</div>
+                <div
+                    style="display:flex;align-items:center;gap:7px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 13px;font-size:13px;color:var(--ink);font-weight:600;">
+                    <span id="dist-u-ico">👑</span><span id="dist-u-name">—</span>
+                </div>
+                <button onclick="showScreen('select')"
+                    style="background:#f0fdfa;border:1px solid #99f6e4;color:#0f766e;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;">
+                    Wards</button>
+                <button onclick="askLogout()"
+                    style="background:#fff1f2;border:1px solid #fecdd3;color:#be123c;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;">Sign
+                    Out</button>
+            </div>
+        </div>
+
+        <!-- District body -->
+        <div class="district-body">
+
+            <!-- Hero banner -->
+            <div
+                style="background:linear-gradient(135deg,#f8fafc 0%,#f0fdfa 50%,#fefce8 100%);border-radius:16px;padding:28px 32px;margin-bottom:22px;position:relative;overflow:hidden;border:2px solid var(--gold);box-shadow:0 4px 20px rgba(201,162,39,0.15);">
+                <div
+                    style="position:absolute;top:0;right:0;bottom:0;width:40%;background:radial-gradient(ellipse at right,rgba(0,180,166,0.08),transparent 70%);pointer-events:none;">
+                </div>
+                <div
+                    style="position:absolute;top:0;left:0;bottom:0;width:40%;background:radial-gradient(ellipse at left,rgba(201,162,39,0.06),transparent 70%);pointer-events:none;">
+                </div>
+                <div
+                    style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+                    <div>
+                        <!-- <div
+                            style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">
+                            Purple Cow Municipality </div> -->
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:800;color:var(--ink);line-height:1.1;margin-bottom:8px;"> District Service Delivery<br>Command Centre</div>
+                        <div style="font-size:14px;color:var(--text2);font-weight:500;">Real-time status across all 14 wards </div>
+                    </div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                        <div
+                            style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+                            <div
+                                style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:var(--gold2);">
+                                14</div>
+                            <div
+                                style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">
+                                Wards</div>
+                        </div>
+                        <div
+                            style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:#22c55e;"
+                                id="dist-hero-ok">0</div>
+                            <div
+                                style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">
+                                Services OK</div>
+                        </div>
+                        <div
+                            style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:#f59e0b;"
+                                id="dist-hero-warn">0</div>
+                            <div
+                                style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">
+                                Warnings</div>
+                        </div>
+                        <div
+                            style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:#e84343;"
+                                id="dist-hero-crit">0</div>
+                            <div
+                                style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">
+                                Critical</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- District KPI strip -->
+            <div class="g5" style="margin-bottom:22px;" id="dist-kpi-strip"></div>
+
+            <!-- Service status section -->
+            <div class="district-section-bar">
+                <div class="bar-title">🔴 Service Status — District Wide</div>
+            </div>
+            <div class="g3" id="dist-services" style="margin-bottom:22px;"></div>
+
+            <!-- Second row -->
+            <div class="g2" style="margin-bottom:22px;">
+
+                <!-- Meter anomalies -->
+                <div>
+                    <div class="district-section-bar">
+                        <div class="bar-title">⚠️ Meter Anomalies &amp; Alerts</div>
+                    </div>
+                    <div id="dist-anomalies"></div>
+                    <div style="text-align:center;margin-top:8px;">
+                        <button onclick="showScreen('select')"
+                            style="background:#f0fdfa;border:1px solid #99f6e4;color:var(--teal2);border-radius:8px;padding:8px 18px;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;">View
+                            All Anomalies by Ward →</button>
+                    </div>
+                </div>
+
+                <!-- Municipality status summary -->
+                <div>
+                    <div class="district-section-bar">
+                        <div class="bar-title">🏘️ Ward Status</div>
+                    </div>
+                    <div id="dist-muni-summary"></div>
+                </div>
+            </div>
+
+            <!-- Infrastructure & news ticker -->
+            <div class="district-section-bar">
+                <div class="bar-title">📡 Live Municipality Feed</div>
+            </div>
+            <div
+                style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px;box-shadow:var(--shadow);">
+                <div id="dist-feed"
+                    style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;"></div>
+            </div>
+
+            <!-- Bottom CTA -->
+            <div style="margin-top:22px;text-align:center;">
+                <button onclick="showScreen('select')"
+                    style="background:linear-gradient(135deg,var(--teal2),var(--teal));color:white;border:none;border-radius:12px;padding:16px 40px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer;box-shadow:0 6px 20px rgba(0,168,150,.3);text-transform:uppercase;transition:all .2s;">
+                    🏘️ Select a Ward to View Its Dashboard →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+     LOADING OVERLAY
+══════════════════════════════════════ -->
+    <div id="load-ov">
+        <div class="spin"></div>
+        <div class="load-txt" id="load-txt">Loading…</div>
+    </div>
+
+    <!-- ══ FLOATING BACK BUTTON ══ -->
+    <div id="float-back" onclick="handleFloatBack()">
+        <span class="fb-arrow">←</span>
+        <span id="float-back-label">Back</span>
+    </div>
+
+    <!-- ══ CONFIRM LOGOUT DIALOG ══ -->
+    <div id="confirm-dialog">
+        <div class="confirm-box">
+            <div class="confirm-ico">🔐</div>
+            <div class="confirm-ttl">Sign Out?</div>
+            <div class="confirm-msg">You are about to sign out of the Purple Cow Municipality Service Delivery
+                Dashboard.<br>Any unsaved work will be lost.</div>
+            <div class="confirm-btns">
+                <button class="confirm-no"
+                    onclick="document.getElementById('confirm-dialog').classList.remove('on')">Cancel</button>
+                <button class="confirm-yes" onclick="confirmLogout()">Sign Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+     SCREEN 1 — LOGIN
+══════════════════════════════════════ -->
+    <div id="s-login" class="screen">
+        <div class="screen-inner" style="max-width:460px;gap:0">
+
+            <!-- <div class="crest">🏛️</div> -->
+            <div class="brand-title">Purple Cow Municipality</div>
+            <div class="brand-sub">Service Delivery Monitoring &amp; Response System</div>
+            <div class="gold-line"></div>
+            <div style="height:32px"></div>
+
+            <div class="login-card" id="login-card">
+
+                <div class="sec-lbl">Select Your Role</div>
+                <div class="role-grid">
+                    <div class="rc sel" onclick="pickRole(this,'admin')">
+                        <div class="rc-ico">👑</div>
+                        <div class="rc-name">Administrator</div>
+                        <div class="rc-desc">Full access · All settings</div>
+                    </div>
+                    <div class="rc" onclick="pickRole(this,'manager')">
+                        <div class="rc-ico">📊</div>
+                        <div class="rc-name">Manager</div>
+                        <div class="rc-desc">Reports · AI insights</div>
+                    </div>
+                    <div class="rc" onclick="pickRole(this,'field')">
+                        <div class="rc-ico">🔧</div>
+                        <div class="rc-name">Field Technician</div>
+                        <div class="rc-desc">Incidents · Live feed</div>
+                    </div>
+                    <div class="rc" onclick="pickRole(this,'viewer')">
+                        <div class="rc-ico">👁️</div>
+                        <div class="rc-name">Read-Only Viewer</div>
+                        <div class="rc-desc">View data · No editing</div>
+                    </div>
+                </div>
+
+                <div class="sec-lbl">Credentials</div>
+
+                <div class="lf">
+                    <label for="l-user">Staff ID / Username</label>
+                    <input id="l-user" type="text" class="li" placeholder="e.g. admin or staff@Purple Cow.gov.za"
+                        autocomplete="username" />
+                </div>
+                <div class="lf">
+                    <label for="l-pass">Password</label>
+                    <div class="pw-wrap">
+                        <input id="l-pass" type="password" class="li" placeholder="Enter your password"
+                            autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+                        <button class="pw-eye" id="l-eye" onclick="togglePW()" type="button">👁</button>
+                    </div>
+                </div>
+
+                <div class="lerr" id="l-err"><span>⚠</span><span id="l-err-msg">Invalid credentials. Please try
+                        again.</span></div>
+
+                <button class="login-btn" id="l-btn" onclick="doLogin()">→ Sign In to Dashboard</button>
+
+                <div class="login-links">
+                    <button class="ll" onclick="document.getElementById('modal-forgot').classList.add('on')">Forgot
+                        password?</button>
+                    <button class="ll" onclick="document.getElementById('modal-help').classList.add('on')">Need
+                        help?</button>
+                </div>
+
+                <div class="demo-hint">
+                    <strong style="color:var(--teal2)">Access Credentials</strong><br>
+                    Username: <code>admin</code> &nbsp; Password: <code>Purple Cow2024</code>
+                </div>
+            </div>
+
+            <!-- <div style="margin-top:18px;font-size:11px;color:var(--text2);text-align:center;line-height:1.9">
+                <div class="live-badge" style="margin-bottom:7px">
+                    <div class="ldot"></div> SECURE · TLS ENCRYPTED
+                </div><br>
+                Authorised Personnel Only · All access is logged · POPIA Compliant
+            </div> -->
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+     SCREEN 2 — MUNICIPALITY SELECTION
+══════════════════════════════════════ -->
+    <div id="s-select" class="screen hidden">
+        <div class="screen-inner" style="gap:0">
+
+            <div class="sel-back-row">
+                <button class="sel-back-btn" onclick="showScreen('district')">← Municipality Overview</button>
+                <div class="sel-user-chip" id="sel-user-chip"><span id="sel-u-ico">👑</span><span
+                        id="sel-u-name">—</span></div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+                <div class="crest" style="width:68px;height:68px;font-size:30px;margin-bottom:0">🏛️</div>
+                <div>
+                    <div class="brand-title" style="font-size:clamp(18px,3vw,30px);text-align:left;color:var(--ink);">
+                        Purple Cow Municipality</div>
+                    <div class="brand-sub" style="text-align:left;color:var(--text2);">Service Delivery Monitoring &amp;
+                        Response System</div>
+                </div>
+            </div>
+            <div class="gold-line" style="margin-bottom:28px;"></div>
+
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;
+      letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:24px;text-align:center">
+                Select a Ward to View its Live Dashboard
+            </div>
+
+            <div class="muni-grid">
+                <div class="mb" onclick="openMuni('ward1')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 1</div>
+                    <div class="mb-val" style="color:var(--green)">96<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">3 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward2')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 2</div>
+                    <div class="mb-val" style="color:var(--green)">94<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">4 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward3')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 3</div>
+                    <div class="mb-val" style="color:var(--green)">91<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">6 open incidents</div>
+                    <span class="mb-tag tg-a"><span class="bdot"></span> Moderate</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward4')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 4</div>
+                    <div class="mb-val" style="color:var(--green)">98<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">2 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward5')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 5</div>
+                    <div class="mb-val" style="color:var(--amber)">89<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--red);font-weight:700;margin-top:4px">9 open incidents</div>
+                    <span class="mb-tag tg-r"><span class="bdot"></span> Attention</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward6')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 6</div>
+                    <div class="mb-val" style="color:var(--green)">95<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">3 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward7')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 7</div>
+                    <div class="mb-val" style="color:var(--amber)">87<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--red);font-weight:700;margin-top:4px">12 open incidents</div>
+                    <span class="mb-tag tg-r"><span class="bdot"></span> Attention</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward8')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 8</div>
+                    <div class="mb-val" style="color:var(--green)">93<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">5 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward9')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 9</div>
+                    <div class="mb-val" style="color:var(--green)">96<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">3 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward10')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 10</div>
+                    <div class="mb-val" style="color:var(--amber)">90<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">8 open incidents</div>
+                    <span class="mb-tag tg-a"><span class="bdot"></span> Moderate</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward11')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 11</div>
+                    <div class="mb-val" style="color:var(--green)">97<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">2 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward12')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 12</div>
+                    <div class="mb-val" style="color:var(--amber)">85<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--red);font-weight:700;margin-top:4px">14 open incidents</div>
+                    <span class="mb-tag tg-r"><span class="bdot"></span> Attention</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward13')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 13</div>
+                    <div class="mb-val" style="color:var(--green)">94<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">4 open incidents</div>
+                    <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+                </div>
+                <div class="mb" onclick="openMuni('ward14')">
+                    <span class="mb-ico">🏘️</span>
+                    <div class="mb-name">Ward 14</div>
+                    <div class="mb-val" style="color:var(--green)">92<span style="font-size:14px">%</span></div>
+                    <div class="mb-lbl">Water Supply</div>
+                    <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">5 open incidents</div>
+                    <span class="mb-tag tg-a"><span class="bdot"></span> Moderate</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="font-size:10px;color:var(--text3);text-align:center;line-height:1.8">
+            <div class="live-badge" style="margin-bottom:7px">
+                <div class="ldot"></div> LIVE REAL-TIME DATA
+            </div><br>
+            Purple Cow Municipality · Ward Service Delivery Intelligence Platform
+        </div>
+    </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+     SCREEN 3 — DASHBOARD
+══════════════════════════════════════ -->
+    <div id="s-dash">
+
+        <!-- Top bar -->
+        <div class="topbar">
+            <div class="tb-left">
+                <div class="tb-crest">🏛️</div>
+                <div class="tb-title">
+                    <h1>Purple Cow Municipality</h1>
+                    <p>Service Delivery Monitoring &amp; Response System</p>
+                </div>
+            </div>
+            <div class="tb-right">
+                <div class="live-badge">
+                    <div class="ldot"></div> LIVE
+                </div>
+                <div id="tb-clock">—</div>
+                <div class="tb-user"><span class="tb-user-ico" id="tb-u-ico">👑</span><span id="tb-u-name">—</span>
+                </div>
+                <button class="tb-back" onclick="showScreen('district')">← Municipality Overview</button>
+                <button class="tb-logout" onclick="askLogout()">Sign Out</button>
+            </div>
+        </div>
+
+        <!-- Municipality banner -->
+        <div class="muni-bar">
+            <span id="mb-ico" style="font-size:18px">🏙️</span>
+            <div class="muni-bar-name" id="mb-name">—</div>
+            <div style="font-size:12px;color:var(--text2);margin-left:4px;font-weight:500;">— Ward Service Delivery
+                Dashboard</div>
+        </div>
+
+        <!-- Breadcrumb navigation -->
+        <div class="breadcrumb">
+            <button class="bc-link" onclick="showScreen('district')" title="Back to Municipality Overview">
+                <span class="bc-ico">🏛️</span> Municipality Overview
+            </button>
+            <span class="bc-sep">›</span>
+            <button class="bc-link" onclick="backToSelect()" title="Back to Municipality Selection">
+                <span class="bc-ico">🏘️</span> Wards
+            </button>
+            <span class="bc-sep">›</span>
+            <span class="bc-current" id="bc-muni-name">—</span>
+            <span class="bc-sep">›</span>
+            <span class="bc-current" id="bc-tab-name">Overview</span>
+            <div style="flex:1"></div>
+            <button class="bc-link" onclick="backToSelect()" style="color:var(--amber);font-weight:700;">
+                ⇄ Switch Ward
+            </button>
+        </div>
+
+        <!-- Nav tabs -->
+        <div class="dash-nav">
+            <button class="dn-btn on" onclick="showTab('overview',this)">📊 Overview</button>
+            <button class="dn-btn" onclick="showTab('water',this)">💧 Water Services</button>
+            <button class="dn-btn" onclick="showTab('incidents',this)">🚨 Incidents <span class="nav-pill"
+                    style="background:rgba(232,67,67,.2);color:var(--red)" id="inc-pill">18</span></button>
+            <button class="dn-btn" onclick="showTab('wards',this)">🏘️ Wards</button>
+            <button class="dn-btn" onclick="showTab('powerbi',this)">📈 Reports</button>
+            <button class="dn-btn" onclick="showTab('ai',this)">📊 Analytical Insights</button>
+            <button class="dn-btn" onclick="showTab('realtime',this)">⚡ Live Data</button>
+        </div>
+
+        <!-- Dashboard body -->
+        <div class="dash-body">
+
+            <!-- ── OVERVIEW ── -->
+            <div id="tab-overview" class="dtab on">
+                <div class="g4">
+                    <div class="card acc">
+                        <div class="clbl">💧 Water Supplied Today</div>
+                        <div class="cval" id="kpi-w" style="color:var(--teal2)">127 <span
+                                style="font-size:16px">ML</span></div>
+                        <div class="csub">Combined bulk &amp; local sources</div>
+                        <div class="trend tr-up" id="kpi-w-trend">▲ +3.2% vs yesterday</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">✅ Requests Resolved</div>
+                        <div class="cval" id="kpi-r" style="color:var(--green)">95<span style="font-size:16px">%</span>
+                        </div>
+                        <div class="csub">Logged &amp; closed incidents</div>
+                        <div class="trend tr-up">▲ +2% this week</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">⏱️ Avg Outage Duration</div>
+                        <div class="cval" id="kpi-d" style="color:var(--amber)">11 <span
+                                style="font-size:16px">hrs</span></div>
+                        <div class="csub">IDP Target: &lt;8 hours</div>
+                        <div class="trend tr-dn">▼ Exceeds target by 3h</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📣 Open Complaints (30d)</div>
+                        <div class="cval" id="kpi-c" style="color:var(--red)">248</div>
+                        <div class="csub">Across all Wards </div>
+                        <div class="trend tr-wn">● 12 critical unresolved</div>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:13px;margin-bottom:13px;">
+                    <div class="card" style="grid-row:span 2">
+                        <div class="clbl">🚨 Live Alerts Feed</div>
+                        <div id="alerts-feed" style="max-height:380px;overflow-y:auto;margin-top:6px"></div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">😊 Community Satisfaction</div>
+                        <div class="gw">
+                            <svg class="gsvg" viewBox="0 0 126 74">
+                                <defs>
+                                    <linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#e84343" />
+                                        <stop offset="50%" stop-color="#f59e0b" />
+                                        <stop offset="100%" stop-color="#22c55e" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="rgba(255,255,255,.07)"
+                                    stroke-width="9" stroke-linecap="round" />
+                                <path id="g-sat" d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="url(#gg)"
+                                    stroke-width="9" stroke-linecap="round" stroke-dasharray="0 166" />
+                                <line id="n-sat" x1="63" y1="68" x2="63" y2="22" stroke="white" stroke-width="2"
+                                    stroke-linecap="round" transform-origin="63 68" />
+                                <circle cx="63" cy="68" r="5" fill="white" />
+                            </svg>
+                            <div class="gval" id="gv-sat" style="color:var(--green)">85%</div>
+                            <div class="glbl">Resolution rate, outage duration &amp; feedback</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📈 Performance Score</div>
+                        <div class="gw">
+                            <svg class="gsvg" viewBox="0 0 126 74">
+                                <path d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="rgba(255,255,255,.07)"
+                                    stroke-width="9" stroke-linecap="round" />
+                                <path id="g-perf" d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="url(#gg)"
+                                    stroke-width="9" stroke-linecap="round" stroke-dasharray="0 166" />
+                                <line id="n-perf" x1="63" y1="68" x2="63" y2="22" stroke="white" stroke-width="2"
+                                    stroke-linecap="round" transform-origin="63 68" />
+                                <circle cx="63" cy="68" r="5" fill="white" />
+                            </svg>
+                            <div class="gval" id="gv-perf" style="color:var(--teal2)">82</div>
+                            <div class="glbl">Supply, response, quality &amp; satisfaction</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📋 Complaint Types (30 Days)</div>
+                        <div style="margin-top:8px">
+                            <div class="br-row">
+                                <div class="br-lbl">No Water Supply</div>
+                                <div class="br-track">
+                                    <div class="br-fill" id="cb1" style="width:40%;background:var(--red)"></div>
+                                </div>
+                                <div class="br-pct" id="cp1">40%</div>
+                            </div>
+                            <div class="br-row">
+                                <div class="br-lbl">Pipe Leaks &amp; Bursts</div>
+                                <div class="br-track">
+                                    <div class="br-fill" id="cb2" style="width:35%;background:var(--amber)"></div>
+                                </div>
+                                <div class="br-pct" id="cp2">35%</div>
+                            </div>
+                            <div class="br-row">
+                                <div class="br-lbl">Water Quality Issues</div>
+                                <div class="br-track">
+                                    <div class="br-fill" id="cb3" style="width:25%;background:var(--teal)"></div>
+                                </div>
+                                <div class="br-pct" id="cp3">25%</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">🔧 Zone 1 Pressure</div>
+                        <div style="text-align:center;padding:10px 0">
+                            <div class="cval" id="kpi-pres" style="color:var(--green)">58 <span
+                                    style="font-size:16px">psi</span></div>
+                            <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:10px">
+                                <span style="color:var(--green)">● Good 45–80</span>
+                                <span style="color:var(--amber)">● Low &lt;45</span>
+                                <span style="color:var(--red)">● Critical &lt;30</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sh">Ward Status</div>
+                <div class="g5" id="ov-munis"></div>
+            </div>
+
+            <!-- ── WATER ── -->
+            <div id="tab-water" class="dtab">
+                <div class="g4">
+                    <div class="card acc">
+                        <div class="clbl">Total Supplied Today</div>
+                        <div class="cval" style="color:var(--teal2)">127 <span style="font-size:16px">ML</span></div>
+                        <div class="trend tr-up">▲ Normal range</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">Active Pipe Incidents</div>
+                        <div class="cval" style="color:var(--red)">7</div>
+                        <div class="trend tr-dn">2 critical · 5 moderate</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">Pump Stations Online</div>
+                        <div class="cval" style="color:var(--green)">14/16</div>
+                        <div class="trend tr-wn">● 2 under maintenance</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">Reservoir Levels</div>
+                        <div class="cval" style="color:var(--teal2)">73%</div>
+                        <div class="trend tr-up">▲ Adequate storage</div>
+                    </div>
+                </div>
+                <div class="g2">
+                    <div class="card">
+                        <div class="clbl">🏗️ Top 5 Longest Outages</div>
+                        <div class="tw">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Duration</th>
+                                        <th>Cause</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2026-08-02</td>
+                                        <td>14h</td>
+                                        <td style="color:var(--red)">Burst Pipe</td>
+                                        <td><span class="bdg bdg-g">Resolved</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2026-08-10</td>
+                                        <td>12h</td>
+                                        <td style="color:var(--amber)">Pump Failure</td>
+                                        <td><span class="bdg bdg-g">Pending</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2026-08-11</td>
+                                        <td>11h</td>
+                                        <td style="color:var(--amber)">Maintenance</td>
+                                        <td><span class="bdg bdg-g">Resolved</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2026-08-05</td>
+                                        <td>10h</td>
+                                        <td style="color:var(--blue)">Major Leak</td>
+                                        <td><span class="bdg bdg-g">Resolved</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2026-08-19</td>
+                                        <td>8h</td>
+                                        <td style="color:var(--blue)">Leak</td>
+                                        <td><span class="bdg bdg-g">Open</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📊 Zone Pressure Status</div>
+                        <div style="margin-top:8px">
+                            <div class="br-row">
+                                <div class="br-lbl">Zone 1 – Willow </div>
+                                <div class="br-track">
+                                    <div class="br-fill" style="width:75%;background:var(--green)"></div>
+                                </div>
+                                <div class="br-pct">62 psi</div>
+                            </div>
+                            <div class="br-row">
+                                <div class="br-lbl">Zone 2 – Juniper </div>
+                                <div class="br-track">
+                                    <div class="br-fill" style="width:60%;background:var(--green)"></div>
+                                </div>
+                                <div class="br-pct">58 psi</div>
+                            </div>
+                            <div class="br-row">
+                                <div class="br-lbl">Zone 3 – Oakley </div>
+                                <div class="br-track">
+                                    <div class="br-fill" style="width:44%;background:var(--amber)"></div>
+                                </div>
+                                <div class="br-pct">46 psi</div>
+                            </div>
+                            <div class="br-row">
+                                <div class="br-lbl">Zone 4 – Luna </div>
+                                <div class="br-track">
+                                    <div class="br-fill" style="width:28%;background:var(--red)"></div>
+                                </div>
+                                <div class="br-pct">31 psi</div>
+                            </div>
+                            <div class="br-row">
+                                <div class="br-lbl">Zone 5 – Buttercup </div>
+                                <div class="br-track">
+                                    <div class="br-fill" style="width:55%;background:var(--green)"></div>
+                                </div>
+                                <div class="br-pct">54 psi</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="clbl">💦 Active Water Infrastructure Issues</div>
+                    <div class="tw">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Location</th>
+                                    <th>Type</th>
+                                    <th>Reported</th>
+                                    <th>Assigned To</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="water-tbl"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── INCIDENTS ── -->
+            <div id="tab-incidents" class="dtab">
+                <div class="g4">
+                    <div class="card">
+                        <div style="text-align:center;padding:8px 0">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--red)"
+                                id="i-open">18</div>
+                            <div class="csub">Open Incidents</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="text-align:center;padding:8px 0">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--amber)"
+                                id="i-prog">9</div>
+                            <div class="csub">In Progress</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="text-align:center;padding:8px 0">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--green)"
+                                id="i-res">156</div>
+                            <div class="csub">Resolved (30d)</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="text-align:center;padding:8px 0">
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--teal2)"
+                                id="i-avg">4.2h</div>
+                            <div class="csub">Avg Response Time</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="clbl">📋 All Active Incidents</div>
+                    <div class="tw">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Type</th>
+                                    <th>Location</th>
+                                    <th>Reported</th>
+                                    <th>Priority</th>
+                                    <th>Team</th>
+                                    <th>ETA</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-inc-tbl"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── MUNICIPALITIES ── -->
+            <div id="tab-municipalities" class="dtab">
+                <div class="g5" id="muni-detail"></div>
+                <div class="card">
+                    <div class="clbl">🗺️ Service Stress Map – Purple Cow Municipality</div>
+                    <div class="map-area">
+                        <svg width="100%" height="100%" viewBox="0 0 620 220" style="position:absolute;inset:0">
+                            <polygon points="70,25 160,15 210,58 185,115 115,125 55,100" fill="rgba(34,197,94,.2)"
+                                stroke="rgba(34,197,94,.55)" stroke-width="1.5" />
+                            <text x="122" y="70" fill="#22c55e" font-size="9" text-anchor="middle"
+                                font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 1-4</text>
+                            <polygon points="210,20 305,12 325,55 295,105 210,108 185,55" fill="rgba(34,197,94,.18)"
+                                stroke="rgba(34,197,94,.45)" stroke-width="1.5" />
+                            <text x="255" y="60" fill="#22c55e" font-size="9" text-anchor="middle"
+                                font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 5-8</text>
+                            <polygon points="325,28 415,22 435,68 405,118 325,115 300,68" fill="rgba(245,158,11,.22)"
+                                stroke="rgba(245,158,11,.55)" stroke-width="1.5" />
+                            <text x="367" y="72" fill="#f59e0b" font-size="9" text-anchor="middle"
+                                font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 9-11</text>
+                            <polygon points="435,18 525,12 545,58 515,108 435,112 410,58" fill="rgba(34,197,94,.18)"
+                                stroke="rgba(34,197,94,.45)" stroke-width="1.5" />
+                            <text x="477" y="63" fill="#22c55e" font-size="9" text-anchor="middle"
+                                font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 12-14</text>
+                            <polygon points="190,118 295,112 305,165 262,208 190,202 148,160" fill="rgba(245,158,11,.2)"
+                                stroke="rgba(245,158,11,.5)" stroke-width="1.5" />
+
+                            <circle cx="367" cy="72" r="5" fill="var(--amber)" opacity=".85">
+                                <animate attributeName="r" from="5" to="11" dur="1.7s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" from=".85" to="0" dur="1.7s"
+                                    repeatCount="indefinite" />
+                            </circle>
+                            <circle cx="225" cy="160" r="5" fill="var(--amber)" opacity=".85">
+                                <animate attributeName="r" from="5" to="11" dur="2s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" from=".85" to="0" dur="2s" repeatCount="indefinite" />
+                            </circle>
+                            <circle cx="122" cy="70" r="5" fill="var(--green)" opacity=".8">
+                                <animate attributeName="r" from="5" to="10" dur="2.2s" repeatCount="indefinite" />
+                                <animate attributeName="opacity" from=".8" to="0" dur="2.2s" repeatCount="indefinite" />
+                            </circle>
+                        </svg>
+                        <div style="position:absolute;bottom:10px;left:14px;display:flex;gap:12px;font-size:11px">
+                            <span style="color:var(--green)">● Stable</span>
+                            <span style="color:var(--amber)">● Moderate</span>
+                            <span style="color:var(--red)">● Critical</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── POWER BI REPORTS ── -->
+            <div id="tab-powerbi" class="dtab">
+
+                <!-- Report toolbar -->
+                <div
+                    style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div
+                            style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#f2c811,#d4a800);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(242,200,17,0.4);flex-shrink:0;">
+                            📊</div>
+                        <div>
+                            <div
+                                style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gold2)">
+                                Purple Cow Municipality — Management Reports</div>
+                            <div style="font-size:11px;color:var(--text2)">Interactive reporting · Select a report type
+                                to view</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button onclick="switchRpt('water')" id="rb-water" class="rb on">💧 Water</button>
+                        <button onclick="switchRpt('performance')" id="rb-performance" class="rb">📈
+                            Performance</button>
+                        <button onclick="switchRpt('complaints')" id="rb-complaints" class="rb">📣 Complaints</button>
+                        <button onclick="switchRpt('incidents')" id="rb-incidents" class="rb">🚨 Incidents</button>
+                    </div>
+                </div>
+
+                <!-- ═══ WATER SERVICES REPORT ═══ -->
+                <div id="rpt-water">
+                    <!-- Slicer bar -->
+                    <div class="card" style="padding:10px 16px;margin-bottom:12px;">
+                        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                            <span
+                                style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)">FILTERS</span>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-size:11px;color:var(--text2)">Municipality</span>
+                                <select id="ws-muni" onchange="buildWater()" class="rpt-sel">
+                                    <option value="all">All Wards</option>
+                                    <option value="ward1">Ward 1</option>
+                                    <option value="ward2">Ward 2</option>
+                                    <option value="ward3">Ward 3</option>
+                                    <option value="ward4">Ward 4</option>
+                                    <option value="ward5">Ward 5</option>
+                                    <option value="ward6">Ward 6</option>
+                                    <option value="ward7">Ward 7</option>
+                                    <option value="ward8">Ward 8</option>
+                                    <option value="ward9">Ward 9</option>
+                                    <option value="ward10">Ward 10</option>
+                                    <option value="ward11">Ward 11</option>
+                                    <option value="ward12">Ward 12</option>
+                                    <option value="ward13">Ward 13</option>
+                                    <option value="ward14">Ward 14</option>
+                                    <option value="ward8">Ward 8</option>
+                                    <option value="ward9">Ward 9</option>
+                                    <option value="ward10">Ward 10</option>
+                                    <option value="ward11">Ward 11</option>
+                                    <option value="ward12">Ward 12</option>
+                                    <option value="ward13">Ward 13</option>
+                                    <option value="ward14">Ward 14</option>
+                                </select>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-size:11px;color:var(--text2)">Period</span>
+                                <select id="ws-period" onchange="buildWater()" class="rpt-sel">
+                                    <option value="6">Last 6 Months</option>
+                                    <option value="12">Last 12 Months</option>
+                                </select>
+                            </div>
+                            <span
+                                style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal2)">●
+                                LIVE DATA</span>
+                        </div>
+                    </div>
+                    <div class="g4" id="ws-kpis" style="margin-bottom:12px;"></div>
+                    <div class="g2" style="margin-bottom:12px;">
+                        <div class="card">
+                            <div class="clbl">💧 Monthly Water Supply (ML)</div><canvas id="c-wsupply"
+                                height="180"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="clbl">🔧 Zone Pressure Readings (psi)</div><canvas id="c-pressure"
+                                height="180"></canvas>
+                        </div>
+                    </div>
+                    <div class="g2">
+                        <div class="card">
+                            <div class="clbl">🏗️ Infrastructure Summary</div>
+                            <div class="tw">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Municipality</th>
+                                            <th>Supply %</th>
+                                            <th>Open Issues</th>
+                                            <th>Avg Outage</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ws-tbl"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="clbl">📊 Outage Causes</div><canvas id="c-causes" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ PERFORMANCE REPORT ═══ -->
+                <div id="rpt-performance" style="display:none">
+                    <div class="g2" style="margin-bottom:12px;">
+                        <div class="card">
+                            <div class="clbl">📈 Performance Score — All Municipalities</div><canvas id="c-perfscores"
+                                height="200"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="clbl">⏱️ Average Response Time (hours)</div><canvas id="c-resptime"
+                                height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">🏆 Scorecard vs IDP Targets</div>
+                        <div class="tw">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Municipality</th>
+                                        <th>Supply %</th>
+                                        <th>IDP Target</th>
+                                        <th>Avg Outage</th>
+                                        <th>IDP Target</th>
+                                        <th>Resolution %</th>
+                                        <th>Score</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="perf-tbl"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ COMPLAINTS REPORT ═══ -->
+                <div id="rpt-complaints" style="display:none">
+                    <div class="g2" style="margin-bottom:12px;">
+                        <div class="card">
+                            <div class="clbl">📣 Complaint Volume by Municipality</div><canvas id="c-compvol"
+                                height="200"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="clbl">📋 Complaint Categories — District Total</div><canvas id="c-compcat"
+                                height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📅 Monthly Complaint Trend — Last 6 Months</div><canvas id="c-comptrend"
+                            height="130"></canvas>
+                    </div>
+                </div>
+
+                <!-- ═══ INCIDENTS REPORT ═══ -->
+                <div id="rpt-incidents" style="display:none">
+                    <div class="g4" id="inc-kpis" style="margin-bottom:12px;"></div>
+                    <div class="g2" style="margin-bottom:12px;">
+                        <div class="card">
+                            <div class="clbl">🚨 Incidents by Type</div><canvas id="c-inctype" height="200"></canvas>
+                        </div>
+                        <div class="card">
+                            <div class="clbl">📊 Resolution Rate Trend (%)</div><canvas id="c-incres"
+                                height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📋 Incident Detail by Municipality</div>
+                        <div class="tw">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Municipality</th>
+                                        <th>Open</th>
+                                        <th>In Progress</th>
+                                        <th>Resolved (30d)</th>
+                                        <th>Avg Response</th>
+                                        <th>SLA %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inc-tbl2"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Report Connector -->
+                <div class="card" style="margin-top:14px;border-color:rgba(242,200,17,0.3);">
+                    <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
+                        <div
+                            style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#f2c811,#d4a800);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">
+                            📎</div>
+                        <div>
+                            <div class="clbl" style="margin-bottom:0;">Connect a Live Report Feed</div>
+                            <div style="font-size:11px;color:var(--text2);">Connect your live report feed — paste an
+                                embed URL below</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+                        <div style="flex:1;min-width:240px;">
+                            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Report Embed URL</div>
+                            <input id="pbi-url" type="text" class="pbi-inp" style="margin-bottom:0;"
+                                placeholder="https://reports.yoursystem.com/embed?reportId=…" />
+                        </div>
+                        <button class="pbi-btn" style="width:auto;padding:9px 22px;white-space:nowrap;"
+                            onclick="loadPBI()">⚡ Load Report</button>
+                    </div>
+                    <div class="card" id="pbi-frame-card"
+                        style="display:none;margin-top:12px;padding:0;overflow:hidden;">
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);">
+                            <div class="clbl" id="pbi-frame-lbl" style="margin-bottom:0;">📈 Live Report</div>
+                            <button onclick="document.getElementById('pbi-frame-card').style.display='none'"
+                                style="background:rgba(232,67,67,.1);border:1px solid rgba(232,67,67,.3);color:var(--red);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;">✕
+                                Close</button>
+                        </div>
+                        <iframe id="pbi-iframe" src="" width="100%" height="560" frameborder="0" allowfullscreen
+                            style="display:block;background:#f8fafc;border-radius:0 0 12px 12px;"></iframe>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ── AI ── -->
+            <div id="tab-ai" class="dtab">
+                <div class="g2">
+                    <div class="card acc">
+                        <div class="clbl">🤖 AI Service Delivery Assistant</div>
+                        <div class="csub" style="margin-bottom:10px">Ask questions about incidents, trends, risks, or
+                            get action recommendations</div>
+                        <div class="ai-chat">
+                            <div class="ai-msgs" id="ai-msgs">
+                                <div class="ai-msg ai">
+                                    <div class="aml">Analytical Engine</div>
+                                    Hello! I'm your Purple Cow Municipality Service Delivery Intelligence Centre. I can
+                                    analyse incidents, predict failure risks, recommend resource deployment, and
+                                    interpret service delivery trends across all 14 wards. What would you like to know?
+                                </div>
+                            </div>
+                            <div class="ai-typing" id="ai-typing" style="display:none">AI is thinking…</div>
+                            <div class="ai-row">
+                                <input class="ai-inp" id="ai-inp"
+                                    placeholder="Ask about incidents, wards, trends, risks…"
+                                    onkeydown="if(event.key==='Enter')sendAI()" />
+                                <button class="ai-snd" id="ai-snd" onclick="sendAI()">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="card" style="margin-bottom:13px">
+                            <div class="clbl">⚡ Quick Prompts</div>
+                            <div class="qp-wrap" id="qp-wrap"></div>
+                        </div>
+                        <div class="card">
+                            <div class="clbl">📊 AI Insights Summary</div>
+                            <div style="margin-top:6px">
+                                <div class="ins ins-r"><strong style="color:var(--red)">⚠ Risk Alert:</strong> Ward 12
+                                    shows 74% probability of supply interruption within 24h based on current pressure
+                                    trends.</div>
+                                <div class="ins ins-t"><strong style="color:var(--teal2)">💡 Recommendation:</strong>
+                                    Deploy Team Gamma to Pump Station 9 for preventive maintenance before peak demand
+                                    (14:00–18:00).</div>
+                                <div class="ins ins-a"><strong style="color:var(--amber)">📈 Trend:</strong> Pipe burst
+                                    incidents up 22% vs last month. Focus: Ward 12 and Ward 7 infrastructure upgrades
+                                    urgently needed.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── LIVE DATA ── -->
+            <div id="tab-realtime" class="dtab">
+                <div class="g4">
+                    <div class="card acc">
+                        <div class="clbl">📡 Feed Status</div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+                            <div class="ldot"></div><span
+                                style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--green)">LIVE</span>
+                        </div>
+                        <div class="csub" id="rt-last">Last update: just now</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📥 Records/Min</div>
+                        <div class="cval" style="color:var(--teal2)" id="rt-rec">142</div>
+                        <div class="csub">Data points ingested</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">⚡ Active Streams</div>
+                        <div class="cval" style="color:var(--amber)">7</div>
+                        <div class="csub">Connected sources</div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">🔔 Alerts (60 min)</div>
+                        <div class="cval" style="color:var(--red)" id="rt-alc">3</div>
+                        <div class="csub">Auto-triggered</div>
+                    </div>
+                </div>
+                <div class="g2">
+                    <div class="card">
+                        <div class="clbl">⚡ Live Event Stream</div>
+                        <div class="rtlog" id="rt-log" style="margin-top:8px"></div>
+                        <div style="display:flex;gap:8px;margin-top:10px">
+                            <button id="rt-pause-btn" onclick="toggleRT()"
+                                style="background:#f0fdf4;border:1px solid #86efac;color:#15803d;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:600">⏸
+                                Pause</button>
+                            <button onclick="document.getElementById('rt-log').innerHTML=''"
+                                style="background:#fff1f2;border:1px solid #fecdd3;color:#be123c;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:600">🗑
+                                Clear</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="clbl">📊 Community Reports Connector</div>
+                        <div class="csub" style="margin-bottom:11px">Connect a Community Report Sheet so staff can log
+                            incidents instantly</div>
+                        <div style="font-size:12px;color:var(--text2);margin-bottom:5px">Published CSV URL</div>
+                        <input id="gs-url" type="text" class="pbi-inp"
+                            placeholder="https://docs.google.com/spreadsheets/d/…/pub?output=csv" />
+                        <button onclick="connectGS()"
+                            style="width:100%;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;border-radius:7px;padding:9px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:11px;text-transform:uppercase">🔗
+                            Connect Google Sheet</button>
+                        <div style="font-size:11px;color:var(--text2);line-height:1.85">
+                            1. Create sheet: <code
+                                style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px;font-size:10px">Date|Type|Location|Priority|Status|Team</code><br>
+                            2. <strong style="color:var(--text)">File → Share → Publish to web</strong> → CSV<br>
+                            3. Paste URL above → refreshes every 30s
+                        </div>
+                        <div id="gs-status" style="margin-top:9px;font-size:11px;color:var(--text2)"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="clbl">🔌 Data Source Status</div>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:11px" id="ds-grid">
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /dash-body -->
+    </div><!-- /s-dash -->
+
+    <!-- ══ FORGOT MODAL ══ -->
+    <div class="modal-bg" id="modal-forgot" onclick="if(event.target===this)this.classList.remove('on')">
+        <div class="modal-box">
+            <button class="modal-x" onclick="document.getElementById('modal-forgot').classList.remove('on')">✕</button>
+            <div class="modal-ttl">Reset Password</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">Enter your staff email. A
+                reset link will be sent by your IT administrator within 24 hours.</div>
+            <div class="lf"><label>Staff Email</label><input type="email" class="li"
+                    placeholder="yourname@Purple Cow.gov.za" id="forgot-email" /></div>
+            <button onclick="submitForgot()"
+                style="width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Send
+                Reset Request</button>
+            <div id="forgot-ok"
+                style="display:none;margin-top:10px;padding:9px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:7px;font-size:12px;color:var(--green);text-align:center">
+                ✅ Request submitted. Check your email within 24 hours.</div>
+        </div>
+    </div>
+
+    <!-- ══ HELP MODAL ══ -->
+    <div class="modal-bg" id="modal-help" onclick="if(event.target===this)this.classList.remove('on')">
+        <div class="modal-box">
+            <button class="modal-x" onclick="document.getElementById('modal-help').classList.remove('on')">✕</button>
+            <div class="modal-ttl">Help &amp; Support</div>
+            <div style="display:flex;flex-direction:column;gap:9px;font-size:12px;color:var(--text2);line-height:1.7">
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong
+                        style="color:var(--text)">🔐 Login Issues</strong><br>Contact IT Helpdesk: <strong
+                        style="color:var(--gold2)">047 501 7000</strong></div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong
+                        style="color:var(--text)">📋 New Staff Access</strong><br>Submit request to ICT Department,
+                    Municipal Buildings, Makhanda</div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong
+                        style="color:var(--text)">🚨 Emergency</strong><br>Critical service delivery hotline: <strong
+                        style="color:var(--red)">0800 567 891</strong> (24/7)</div>
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong
+                        style="color:var(--text)">⚖️ POPIA Compliance</strong><br>All access is logged. Unauthorised
+                    access is a criminal offence.</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

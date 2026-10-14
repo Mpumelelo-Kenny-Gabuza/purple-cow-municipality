@@ -1,0 +1,2821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Purple Cow Municipality – Service Delivery Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  /* Dashboard uses white/light backgrounds for clarity in presentations */
+  --ink:#07101e;--ink2:#0c1a30;--ink3:#152342;--ink4:#1d3058;
+  --gold:#c9a227;--gold2:#e8bc3a;
+  --teal:#00b4a6;--teal2:#00a896;
+  --red:#dc2626;--amber:#d97706;--green:#16a34a;--blue:#2563eb;
+  --text:#1e293b;--text2:#475569;--text3:#94a3b8;
+  /* Light card system */
+  --card:#ffffff;
+  --card2:#f8fafc;
+  --border:rgba(0,0,0,0.1);
+  --border2:rgba(0,180,166,0.25);
+  --page-bg:#f1f5f9;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+body{background:var(--page-bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden}
+body::before{display:none;}
+
+/* ══ SHARED UTILS ══ */
+.hidden{display:none!important}
+.screen{position:fixed;inset:0;z-index:100;overflow-y:auto;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 16px;
+  background:#ffffff;}
+.screen::before{display:none;}
+.screen-inner{position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center;}
+
+@keyframes crestPulse{from{box-shadow:0 0 30px rgba(201,162,39,.4),0 0 60px rgba(201,162,39,.1)}to{box-shadow:0 0 55px rgba(201,162,39,.65),0 0 100px rgba(201,162,39,.2)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-7px)}30%{transform:translateX(7px)}45%{transform:translateX(-5px)}60%{transform:translateX(5px)}75%{transform:translateX(-3px)}90%{transform:translateX(3px)}}
+
+.crest{width:82px;height:82px;border-radius:50%;
+  background:linear-gradient(145deg,#8a6010,#e8bc3a,#8a6010);
+  display:flex;align-items:center;justify-content:center;font-size:36px;
+  box-shadow:0 4px 20px rgba(201,162,39,.35),0 8px 32px rgba(201,162,39,.12);
+  margin-bottom:18px;animation:none;flex-shrink:0;}
+.brand-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(22px,4vw,38px);
+  font-weight:800;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--ink);text-align:center;margin-bottom:5px;}
+.brand-sub{font-size:13px;color:var(--text2);letter-spacing:.5px;text-align:center;}
+.gold-line{width:160px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px auto 0;}
+.live-badge{display:inline-flex;align-items:center;gap:6px;
+  background:#f0fdf4;border:1px solid #86efac;
+  border-radius:20px;padding:5px 13px;font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:700;color:#15803d;letter-spacing:.3px;}
+.ldot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite;}
+
+/* ══════════════════════════════════════
+   SCREEN 1 — LOGIN
+══════════════════════════════════════ */
+#s-login{}
+.login-card{background:#ffffff;border:1px solid #e2e8f0;
+  border-radius:16px;padding:36px 32px 30px;width:100%;max-width:430px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.10);
+  position:relative;}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--teal),var(--gold),var(--teal));
+  border-radius:16px 16px 0 0;}
+
+.sec-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;}
+.sec-lbl::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:20px;}
+.rc{background:#f8fafc;border:2px solid #e2e8f0;
+  border-radius:10px;padding:13px 10px;cursor:pointer;text-align:center;
+  transition:all .2s;position:relative;}
+.rc:hover{border-color:var(--teal);background:#f0fdfa;box-shadow:0 4px 16px rgba(0,168,150,.1);}
+.rc.sel{border-color:var(--teal2);background:#f0fdfa;box-shadow:0 4px 16px rgba(0,168,150,.15);}
+.rc.sel::after{content:'✓';position:absolute;top:5px;right:8px;font-size:11px;font-weight:700;color:var(--teal2);}
+.rc-ico{font-size:20px;margin-bottom:6px;}
+.rc-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.rc-desc{font-size:12px;color:var(--text2);line-height:1.4;}
+
+.lf{margin-bottom:14px;}
+.lf label{display:block;font-size:14px;color:var(--text2);margin-bottom:6px;font-weight:500;}
+.li{width:100%;background:#ffffff;border:1px solid #e2e8f0;
+  border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:15px;padding:12px 15px;outline:none;
+  transition:border-color .2s,box-shadow .2s;}
+.li:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,168,150,.12);}
+.li::placeholder{color:#94a3b8;}
+.li.err{border-color:var(--red)!important;box-shadow:0 0 0 3px rgba(220,38,38,.12)!important;}
+.pw-wrap{position:relative;}
+.pw-wrap .li{padding-right:44px;}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:#94a3b8;cursor:pointer;font-size:15px;padding:4px;}
+.pw-eye:hover{color:var(--teal2);}
+
+.lerr{display:none;background:#fee2e2;border:1px solid #fca5a5;
+  border-radius:8px;padding:9px 13px;font-size:12px;color:#b91c1c;
+  margin-bottom:14px;align-items:center;gap:7px;}
+.lerr.on{display:flex;}
+
+.login-btn{width:100%;padding:14px;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  color:white;font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;font-weight:800;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(0,180,166,.25);}
+.login-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,180,166,.38);}
+.login-btn:disabled{opacity:.55;cursor:default;transform:none;}
+
+.login-links{display:flex;justify-content:center;gap:20px;margin-top:14px;}
+.ll{font-size:11px;color:var(--text2);cursor:pointer;background:none;border:none;
+  padding:0;font-family:'DM Sans',sans-serif;transition:color .2s;}
+.ll:hover{color:var(--teal2);}
+.demo-hint{margin-top:16px;padding:10px 14px;background:#f0fdfa;
+  border:1px solid #99f6e4;border-radius:8px;font-size:11px;
+  color:var(--text2);text-align:center;line-height:1.7;}
+code{background:#f1f5f9;color:var(--ink);padding:2px 7px;border-radius:4px;font-family:monospace;font-size:11px;font-weight:700;border:1px solid #e2e8f0;}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.72);
+  display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.on{display:flex;}
+.modal-box{background:#ffffff;border:1px solid #e2e8f0;border-radius:14px;
+  padding:26px;max-width:380px;width:100%;animation:fadeUp .3s ease;position:relative;}
+.modal-ttl{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;color:var(--ink);margin-bottom:10px;}
+.modal-x{position:absolute;top:14px;right:16px;background:none;border:none;
+  color:#94a3b8;cursor:pointer;font-size:17px;transition:color .2s;}
+.modal-x:hover{color:var(--red);}
+
+/* ══════════════════════════════════════
+   SCREEN 2 — MUNICIPALITY SELECTION
+══════════════════════════════════════ */
+#s-select{}
+.muni-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  max-width:1140px;width:100%;margin-bottom:28px;}
+.mb{background:#ffffff;border:1px solid #e2e8f0;
+  border-radius:14px;padding:24px 18px;cursor:pointer;text-align:center;
+  transition:all .28s;box-shadow:0 2px 12px rgba(0,0,0,.07);position:relative;overflow:hidden;}
+.mb::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--teal),var(--gold));opacity:0;transition:opacity .3s;}
+.mb:hover{border-color:var(--teal);background:#f0fdfa;
+  transform:translateY(-6px);box-shadow:0 16px 40px rgba(0,168,150,.18);}
+.mb:hover::before{opacity:1;}
+.mb:hover .mb-ico{transform:scale(1.14);}
+.mb-ico{font-size:32px;display:block;margin-bottom:12px;transition:transform .3s;}
+.mb-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;
+  color:var(--ink);line-height:1.2;margin-bottom:8px;}
+.mb-val{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;margin:4px 0 2px;}
+.mb-lbl{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.mb-tag{display:inline-flex;align-items:center;gap:4px;margin-top:8px;
+  padding:5px 12px;border-radius:20px;font-size:13px;font-weight:700;letter-spacing:.3px;}
+.tg-a{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+.tg-g{background:#dcfce7;color:#15803d;border:1px solid #86efac;}
+.tg-r{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;}
+
+/* ══════════════════════════════════════
+   SCREEN 3 — DASHBOARD
+══════════════════════════════════════ */
+#s-dash{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;
+  background:var(--page-bg);overflow:hidden;padding:0;}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;
+  background:#ffffff !important;
+  border-bottom:3px solid var(--gold);
+  box-shadow:0 2px 12px rgba(0,0,0,0.08);
+  flex-shrink:0;gap:10px;flex-wrap:wrap;}
+.tb-left{display:flex;align-items:center;gap:14px;min-width:0;}
+.tb-crest{width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:0 4px 12px rgba(201,162,39,.35);flex-shrink:0;}
+.tb-title h1{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;color:var(--ink);}
+.tb-title p{font-size:13px;color:var(--text2);font-weight:500;}
+.tb-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+#tb-clock{font-size:13px;color:var(--text2);font-weight:600;}
+.tb-user{display:flex;align-items:center;gap:7px;background:#f8fafc;
+  border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:14px;color:var(--ink);font-weight:600;}
+.tb-user-ico{font-size:15px;}
+.tb-logout{background:#fff1f2;border:1px solid #fecdd3;
+  color:#be123c;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:14px;font-weight:700;
+  font-family:'DM Sans',sans-serif;transition:all .2s;}
+.tb-logout:hover{background:#fee2e2;}
+.tb-back{background:#f0fdfa;border:1px solid #99f6e4;
+  color:#0f766e;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:14px;font-weight:700;
+  font-family:'DM Sans',sans-serif;transition:all .2s;}
+.tb-back:hover{background:#ccfbf1;}
+
+/* Muni banner */
+.muni-bar{background:#ffffff;border-bottom:2px solid #e2e8f0;
+  padding:10px 24px;display:flex;align-items:center;gap:14px;flex-shrink:0;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.muni-bar-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;
+  letter-spacing:1px;text-transform:uppercase;color:var(--ink);}
+
+/* Nav tabs */
+.dash-nav{display:flex;background:#ffffff;border-bottom:2px solid #e2e8f0;
+  padding:0 18px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,0.04);}
+.dash-nav::-webkit-scrollbar{display:none;}
+.dn-btn{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;padding:15px 22px;
+  background:none;border:none;border-bottom:3px solid transparent;
+  color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.dn-btn.on{color:var(--teal2);border-bottom-color:var(--teal2);}
+.dn-btn:hover:not(.on){color:var(--text);background:rgba(0,0,0,0.03);}
+.nav-pill{display:inline-flex;align-items:center;justify-content:center;
+  width:19px;height:19px;border-radius:50%;font-size:9px;font-weight:800;
+  margin-left:5px;vertical-align:middle;}
+
+/* Dash body */
+.dash-body{flex:1;overflow-y:auto;padding:20px 22px;background:var(--page-bg);}
+.dash-body::-webkit-scrollbar{width:5px;}
+.dash-body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+
+/* Tabs */
+.dtab{display:none;}
+.dtab.on{display:block;}
+
+/* Grids */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.g21{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:16px;}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g5{grid-template-columns:repeat(2,1fr)}.g21{grid-template-columns:1fr}}
+@media(max-width:1000px){.muni-grid{grid-template-columns:repeat(2,1fr)!important}}
+@media(max-width:700px){.g4,.g3,.g2,.g21,.g5{grid-template-columns:1fr}.muni-grid{grid-template-columns:repeat(1,1fr)!important}}
+
+/* Cards — white with clean shadows */
+.card{background:var(--card);border:1px solid #e2e8f0;border-radius:12px;
+  padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  transition:box-shadow .2s,transform .2s;}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--teal),var(--gold));opacity:.5;}
+.card.acc::before{opacity:1;}
+.clbl{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;}
+.cval{font-family:'Barlow Condensed',sans-serif;font-size:48px;font-weight:800;line-height:1;}
+.csub{font-size:14px;color:var(--text2);margin-top:6px;}
+.trend{font-size:13px;font-weight:600;margin-top:6px;}
+.tr-up{color:var(--green)}.tr-dn{color:var(--red)}.tr-wn{color:var(--amber)}
+
+/* Badge */
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;
+  padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;}
+.bdg-g{background:#dcfce7;color:#15803d;border:1px solid #86efac;}
+.bdg-a{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+.bdg-r{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;}
+.bdg-t{background:#ccfbf1;color:#0f766e;border:1px solid #5eead4;}
+.bdot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* Table */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+th{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;color:white;background:var(--ink);
+  padding:11px 13px;text-align:left;}
+th:first-child{border-radius:8px 0 0 0;}
+th:last-child{border-radius:0 8px 0 0;}
+td{padding:11px 13px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:var(--text);font-size:14px;}
+tr:nth-child(even) td{background:#f8fafc;}
+tr:hover td{background:#f0f9ff;}
+.idc{font-weight:700;font-size:14px;color:var(--teal2);}
+
+/* Bar chart */
+.br-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.br-lbl{font-size:14px;color:var(--text2);width:155px;flex-shrink:0;font-weight:500;}
+.br-track{flex:1;height:9px;background:#e2e8f0;border-radius:5px;overflow:hidden;}
+.br-fill{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.br-pct{font-size:14px;font-weight:700;color:var(--text);width:40px;text-align:right;}
+
+/* Gauge */
+.gw{display:flex;flex-direction:column;align-items:center;padding:6px 0;}
+.gsvg{width:140px;height:82px;}
+.gval{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:800;text-align:center;margin-top:-4px;color:var(--text);}
+.glbl{font-size:13px;color:var(--text2);text-align:center;margin-top:2px;line-height:1.4;}
+
+/* Alerts */
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;
+  border-radius:8px;margin-bottom:8px;border-left:4px solid;
+  animation:slideIn .35s ease;}
+.alert-item.critical{border-color:var(--red);background:#fef2f2;}
+.alert-item.warning{border-color:var(--amber);background:#fffbeb;}
+.alert-item.info{border-color:var(--teal);background:#f0fdfa;}
+.alert-item.resolved{border-color:var(--green);background:#f0fdf4;}
+.aico{font-size:20px;flex-shrink:0;margin-top:2px;}
+.ac h4{font-size:15px;font-weight:700;margin-bottom:4px;color:var(--text);}
+.ac p{font-size:13px;color:var(--text2);}
+.at{font-size:13px;color:var(--text2);white-space:nowrap;font-weight:600;}
+
+/* Section head */
+.sh{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;}
+.sh::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--teal2),transparent);opacity:.3;}
+
+/* Muni detail card */
+.mc{background:var(--card);border:1px solid #e2e8f0;border-radius:12px;
+  padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--teal),var(--gold));}
+.mc-name{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;
+  color:var(--ink);margin-bottom:10px;}
+.mc-sup{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;}
+
+/* AI Chat */
+.ai-chat{display:flex;flex-direction:column;height:340px;}
+.ai-msgs{flex:1;overflow-y:auto;padding:6px 2px;display:flex;flex-direction:column;gap:9px;}
+.ai-msgs::-webkit-scrollbar{width:4px;}
+.ai-msgs::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px;}
+.ai-msg{max-width:85%;padding:12px 16px;border-radius:12px;font-size:14px;line-height:1.65;animation:fadeUp .3s ease;}
+.ai-msg.ai{background:#f0fdfa;border:1px solid #99f6e4;align-self:flex-start;color:var(--text);}
+.ai-msg.usr{background:#fef3c7;border:1px solid #fcd34d;align-self:flex-end;color:var(--text);}
+.aml{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.ai-msg.ai .aml{color:var(--teal2)}.ai-msg.usr .aml{color:var(--amber)}
+.ai-row{display:flex;gap:8px;padding:10px 0 0;border-top:1px solid #e2e8f0;}
+.ai-inp{flex:1;background:#f8fafc;border:1px solid #cbd5e1;
+  border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:14px;padding:10px 13px;outline:none;transition:border-color .2s;}
+.ai-inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,168,150,0.1);}
+.ai-inp::placeholder{color:#94a3b8;}
+.ai-snd{background:var(--teal2);color:white;border:none;border-radius:8px;
+  padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;}
+.ai-snd:hover{background:var(--teal);}
+.ai-snd:disabled{background:#94a3b8;cursor:default;}
+.ai-typing{font-size:14px;color:var(--text2);padding:4px 8px;font-style:italic;}
+
+/* Quick prompts */
+.qp-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;}
+.qp{background:#f1f5f9;border:1px solid #e2e8f0;
+  color:var(--text2);border-radius:7px;padding:7px 13px;cursor:pointer;font-size:13px;
+  font-family:'DM Sans',sans-serif;transition:all .2s;font-weight:500;}
+.qp:hover{color:var(--teal2);border-color:var(--teal);background:#f0fdfa;}
+
+/* Insight cards */
+.ins{border-left:4px solid;padding:11px 14px;border-radius:0 8px 8px 0;font-size:14px;margin-bottom:8px;}
+.ins-r{background:#fef2f2;border-color:var(--red);color:var(--text);}
+.ins-t{background:#f0fdfa;border-color:var(--teal);color:var(--text);}
+.ins-a{background:#fffbeb;border-color:var(--amber);color:var(--text);}
+
+/* RT Stream */
+.rtlog{font-size:14px;height:320px;
+  overflow-y:auto;padding:14px;background:#ffffff;border-radius:8px;
+  border:1.5px solid #e2e8f0;color:#000000;font-family:'DM Sans',sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;line-height:1.7;}
+.rtlog::-webkit-scrollbar{width:5px;}
+.rtlog::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px;}
+.rtline{padding:7px 0;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:10px;flex-wrap:nowrap;}
+
+/* Breadcrumb */
+.breadcrumb{display:flex;align-items:center;gap:7px;padding:9px 24px;
+  background:#ffffff;border-bottom:1px solid #e2e8f0;
+  font-size:14px;color:var(--text2);flex-shrink:0;flex-wrap:wrap;}
+.bc-sep{color:#cbd5e1;font-size:12px;flex-shrink:0;}
+.bc-link{color:var(--teal2);cursor:pointer;background:none;border:none;
+  font-family:'DM Sans',sans-serif;font-size:14px;padding:3px 8px;font-weight:600;
+  border-radius:6px;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.bc-link:hover{background:#f0fdfa;color:var(--teal);}
+.bc-current{color:var(--text);font-weight:700;padding:3px 8px;font-size:14px;}
+.bc-ico{font-size:14px;}
+
+/* Reports tab */
+/* Arch */
+.arch-box{background:#eff6ff;border:1px solid #bfdbfe;
+  border-radius:7px;padding:9px 12px;font-size:12px;text-align:center;margin-bottom:7px;color:var(--text);}
+.arch-out{border-radius:7px;padding:9px 12px;font-size:12px;text-align:center;margin-bottom:7px;}
+.arch-c{background:linear-gradient(135deg,#fef3c7,#ccfbf1);
+  border:2px solid var(--gold);border-radius:10px;padding:18px 16px;text-align:center;
+  box-shadow:0 4px 16px rgba(201,162,39,.2);}
+
+/* Loading spinner overlay */
+#load-ov{position:fixed;inset:0;z-index:9999;background:rgba(255,255,255,.95);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s;}
+#load-ov.on{opacity:1;pointer-events:all;}
+.spin{width:44px;height:44px;border:3px solid rgba(201,162,39,.15);
+  border-top-color:var(--gold2);border-radius:50%;
+  animation:spin .8s linear infinite;margin-bottom:14px;}
+.load-txt{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--text2);}
+
+/* Report tab buttons */
+.rb{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;
+  letter-spacing:.5px;padding:9px 18px;border-radius:8px;cursor:pointer;
+  background:#f1f5f9;border:1px solid #e2e8f0;
+  color:var(--text2);transition:all .2s;white-space:nowrap;}
+.rb:hover{background:#fef3c7;border-color:var(--gold);color:var(--ink);}
+.rb.on{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:800;
+  box-shadow:0 4px 14px rgba(201,162,39,.3);}
+.rpt-sel{background:#f8fafc;border:1px solid #e2e8f0;
+  border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:14px;padding:7px 12px;outline:none;cursor:pointer;}
+.rpt-sel:focus{border-color:var(--teal);}
+.pbi-inp{width:100%;background:#f8fafc;border:1px solid #e2e8f0;
+  border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:13px;padding:10px 13px;outline:none;
+  transition:border-color .2s;margin-bottom:10px;box-sizing:border-box;}
+.pbi-inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,168,150,.1);}
+.pbi-sel{width:100%;background:#f8fafc;border:1px solid #e2e8f0;
+  border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;
+  font-size:13px;padding:10px 13px;outline:none;margin-bottom:10px;}
+.pbi-btn{width:100%;padding:12px;border:none;border-radius:9px;
+  background:linear-gradient(135deg,var(--teal2),var(--teal));color:white;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:16px;font-weight:800;letter-spacing:1.5px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.pbi-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,168,150,.3);}
+
+/* DS status */
+.ds-card{background:white;border:1px solid #e2e8f0;
+  border-radius:10px;padding:14px;text-align:center;box-shadow:var(--shadow);transition:transform .2s;}
+.ds-card:hover{transform:translateY(-2px);}
+
+/* Map */
+.map-area{width:100%;height:240px;background:linear-gradient(135deg,#e8f4f8,#dbeafe);
+  border-radius:10px;position:relative;overflow:hidden;border:1px solid #bfdbfe;}
+
+/* Float back */
+#float-back{position:fixed;bottom:24px;left:24px;z-index:500;
+  display:none;align-items:center;gap:8px;
+  background:white;border:2px solid var(--teal2);
+  border-radius:50px;padding:10px 20px 10px 16px;
+  box-shadow:0 8px 28px rgba(0,0,0,.15);cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:var(--teal2);
+  transition:all .25s;}
+#float-back:hover{background:var(--teal2);color:white;transform:translateX(-3px);}
+#float-back.show{display:flex;}
+.fb-arrow{font-size:18px;line-height:1;}
+
+/* Confirm dialog */
+#confirm-dialog{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.5);
+  display:none;align-items:center;justify-content:center;padding:20px;}
+#confirm-dialog.on{display:flex;}
+.confirm-box{background:white;border:1px solid #e2e8f0;border-radius:16px;
+  padding:30px;max-width:380px;width:100%;animation:fadeUp .25s ease;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.confirm-ico{font-size:40px;margin-bottom:14px;}
+.confirm-ttl{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;
+  text-transform:uppercase;letter-spacing:1px;color:var(--ink);margin-bottom:9px;}
+.confirm-msg{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:24px;}
+.confirm-btns{display:flex;gap:12px;justify-content:center;}
+.confirm-yes{padding:11px 26px;border:none;border-radius:9px;
+  background:linear-gradient(135deg,var(--red),#b91c1c);color:white;
+  font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;
+  letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.confirm-yes:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(220,38,38,.35);}
+.confirm-no{padding:11px 26px;border:2px solid #e2e8f0;border-radius:9px;
+  background:transparent;color:var(--text2);
+  font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;
+  letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.confirm-no:hover{background:#f8fafc;color:var(--text);}
+
+/* Selection screen */
+.sel-back-row{position:relative;z-index:1;width:100%;max-width:860px;
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sel-back-btn{display:flex;align-items:center;gap:7px;background:#f8fafc;
+  border:1px solid #e2e8f0;border-radius:8px;
+  padding:8px 15px;color:var(--text2);cursor:pointer;font-size:13px;
+  font-family:'DM Sans',sans-serif;transition:all .2s;font-weight:600;}
+.sel-back-btn:hover{background:#f0fdfa;border-color:var(--teal2);color:var(--teal2);}
+.sel-user-chip{display:flex;align-items:center;gap:7px;
+  background:#f8fafc;border:1px solid #e2e8f0;
+  border-radius:8px;padding:8px 15px;font-size:13px;color:var(--text2);}
+
+/* ══ DISTRICT LANDING ══ */
+#s-district{position:fixed;inset:0;z-index:180;display:none;flex-direction:column;background:var(--page-bg);overflow:hidden;}
+.district-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;
+  background:#ffffff !important;
+  border-bottom:3px solid var(--gold);box-shadow:0 2px 12px rgba(0,0,0,.08);flex-shrink:0;flex-wrap:wrap;gap:10px;}
+.district-body{flex:1;overflow-y:auto;padding:22px 24px;background:var(--page-bg);}
+.svc-card{background:white;border:1px solid #e2e8f0;border-radius:14px;
+  padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:all .25s;cursor:default;}
+.svc-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+.svc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.svc-card.svc-ok::before{background:linear-gradient(90deg,#16a34a,#4ade80);}
+.svc-card.svc-warn::before{background:linear-gradient(90deg,#d97706,#fbbf24);}
+.svc-card.svc-crit::before{background:linear-gradient(90deg,#dc2626,#f87171);}
+.svc-card.svc-info::before{background:linear-gradient(90deg,#00a896,#00d4c4);}
+.svc-ico{font-size:40px;margin-bottom:12px;display:block;}
+.svc-name{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;color:var(--ink);margin-bottom:5px;}
+.svc-val{font-family:'Barlow Condensed',sans-serif;font-size:46px;font-weight:800;line-height:1;margin-bottom:5px;}
+.svc-lbl{font-size:13px;color:var(--text2);font-weight:600;}
+.svc-status{display:inline-flex;align-items:center;gap:6px;margin-top:10px;
+  font-size:13px;font-weight:700;padding:5px 13px;border-radius:20px;}
+.svc-status.ok{background:#dcfce7;color:#15803d;}
+.svc-status.warn{background:#fef3c7;color:#92400e;}
+.svc-status.crit{background:#fee2e2;color:#b91c1c;}
+.svc-status.info{background:#ccfbf1;color:#0f766e;}
+.svc-sdot{width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 2s infinite;}
+.dist-kpi{background:white;border:1px solid #e2e8f0;border-radius:10px;
+  padding:16px 18px;box-shadow:var(--shadow);text-align:center;}
+.dist-kpi-val{font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:800;line-height:1;}
+.dist-kpi-lbl{font-size:13px;color:var(--text2);font-weight:600;text-transform:uppercase;
+  letter-spacing:.8px;margin-top:5px;}
+.anomaly-row{display:flex;align-items:center;gap:10px;padding:11px 14px;
+  background:white;border:1px solid #fecaca;border-radius:9px;
+  margin-bottom:8px;border-left:4px solid var(--red);box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.anomaly-row.warn{border-color:#fde68a;border-left-color:var(--amber);}
+.anomaly-row.info{border-color:#a7f3d0;border-left-color:var(--teal);}
+.anomaly-ico{font-size:20px;flex-shrink:0;}
+.anomaly-main{flex:1;}
+.anomaly-title{font-size:15px;font-weight:700;color:#000000;}
+.anomaly-sub{font-size:13px;color:var(--text2);}
+.anomaly-time{font-size:13px;color:var(--text2);white-space:nowrap;font-weight:700;}
+.district-section-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:4px;}
+.district-section-bar .bar-title{font-family:'Barlow Condensed',sans-serif;
+  font-size:19px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);}
+.district-section-bar::after{content:'';flex:1;height:2px;
+  background:linear-gradient(90deg,var(--teal2),transparent);opacity:.35;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     DISTRICT LANDING SCREEN
+══════════════════════════════════════ -->
+<div id="s-district">
+
+  <!-- District topbar -->
+  <div class="district-topbar">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 14px rgba(201,162,39,.5);flex-shrink:0;">🏛️</div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--ink);">Purple Cow Municipality</div>
+        <div style="font-size:11px;color:var(--text2);font-weight:500;">Municipality Command Centre · Service Delivery Overview</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div class="live-badge"><div class="ldot"></div> LIVE MUNICIPALITY VIEW</div>
+      <div id="dist-clock" style="font-size:12px;color:var(--text2);font-weight:600;">—</div>
+      <div style="display:flex;align-items:center;gap:7px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 13px;font-size:13px;color:var(--ink);font-weight:600;">
+        <span id="dist-u-ico">👑</span><span id="dist-u-name">—</span>
+      </div>
+      <button onclick="showScreen('select')" style="background:#f0fdfa;border:1px solid #99f6e4;color:#0f766e;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;">🏘️ Wards</button>
+      <button onclick="askLogout()" style="background:#fff1f2;border:1px solid #fecdd3;color:#be123c;border-radius:7px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- District body -->
+  <div class="district-body">
+
+    <!-- Hero banner -->
+    <div style="background:linear-gradient(135deg,#f8fafc 0%,#f0fdfa 50%,#fefce8 100%);border-radius:16px;padding:28px 32px;margin-bottom:22px;position:relative;overflow:hidden;border:2px solid var(--gold);box-shadow:0 4px 20px rgba(201,162,39,0.15);">
+      <div style="position:absolute;top:0;right:0;bottom:0;width:40%;background:radial-gradient(ellipse at right,rgba(0,180,166,0.08),transparent 70%);pointer-events:none;"></div>
+      <div style="position:absolute;top:0;left:0;bottom:0;width:40%;background:radial-gradient(ellipse at left,rgba(201,162,39,0.06),transparent 70%);pointer-events:none;"></div>
+      <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Purple Cow Municipality </div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:800;color:var(--ink);line-height:1.1;margin-bottom:8px;">District Service Delivery<br>Command Centre</div>
+          <div style="font-size:14px;color:var(--text2);font-weight:500;">Real-time status across all 14 wards · Water · Electricity · Sanitation · Emergency · Infrastructure</div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <div style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:var(--gold2);">14</div>
+            <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">Wards</div>
+          </div>
+          <div style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:#22c55e;" id="dist-hero-ok">0</div>
+            <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">Services OK</div>
+          </div>
+          <div style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:#f59e0b;" id="dist-hero-warn">0</div>
+            <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">Warnings</div>
+          </div>
+          <div style="text-align:center;padding:14px 20px;background:rgba(255,255,255,.8);border-radius:12px;border:1px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;color:#e84343;" id="dist-hero-crit">0</div>
+            <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.8px;">Critical</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- District KPI strip -->
+    <div class="g5" style="margin-bottom:22px;" id="dist-kpi-strip"></div>
+
+    <!-- Service status section -->
+    <div class="district-section-bar"><div class="bar-title">🔴 Service Status — District Wide</div></div>
+    <div class="g3" id="dist-services" style="margin-bottom:22px;"></div>
+
+    <!-- Second row -->
+    <div class="g2" style="margin-bottom:22px;">
+
+      <!-- Meter anomalies -->
+      <div>
+        <div class="district-section-bar"><div class="bar-title">⚠️ Meter Anomalies &amp; Alerts</div></div>
+        <div id="dist-anomalies"></div>
+        <div style="text-align:center;margin-top:8px;">
+          <button onclick="showScreen('select')" style="background:#f0fdfa;border:1px solid #99f6e4;color:var(--teal2);border-radius:8px;padding:8px 18px;cursor:pointer;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;">View All Anomalies by Ward →</button>
+        </div>
+      </div>
+
+      <!-- Municipality status summary -->
+      <div>
+        <div class="district-section-bar"><div class="bar-title">🏘️ Ward Status</div></div>
+        <div id="dist-muni-summary"></div>
+      </div>
+    </div>
+
+    <!-- Infrastructure & news ticker -->
+    <div class="district-section-bar"><div class="bar-title">📡 Live Municipality Feed</div></div>
+    <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px;box-shadow:var(--shadow);">
+      <div id="dist-feed" style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- Bottom CTA -->
+    <div style="margin-top:22px;text-align:center;">
+      <button onclick="showScreen('select')" style="background:linear-gradient(135deg,var(--teal2),var(--teal));color:white;border:none;border-radius:12px;padding:16px 40px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer;box-shadow:0 6px 20px rgba(0,168,150,.3);text-transform:uppercase;transition:all .2s;">
+        🏘️ Select a Ward to View Its Dashboard →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     LOADING OVERLAY
+══════════════════════════════════════ -->
+<div id="load-ov">
+  <div class="spin"></div>
+  <div class="load-txt" id="load-txt">Loading…</div>
+</div>
+
+<!-- ══ FLOATING BACK BUTTON ══ -->
+<div id="float-back" onclick="handleFloatBack()">
+  <span class="fb-arrow">←</span>
+  <span id="float-back-label">Back</span>
+</div>
+
+<!-- ══ CONFIRM LOGOUT DIALOG ══ -->
+<div id="confirm-dialog">
+  <div class="confirm-box">
+    <div class="confirm-ico">🔐</div>
+    <div class="confirm-ttl">Sign Out?</div>
+    <div class="confirm-msg">You are about to sign out of the Purple Cow Municipality Service Delivery Dashboard.<br>Any unsaved work will be lost.</div>
+    <div class="confirm-btns">
+      <button class="confirm-no" onclick="document.getElementById('confirm-dialog').classList.remove('on')">Cancel</button>
+      <button class="confirm-yes" onclick="confirmLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1 — LOGIN
+══════════════════════════════════════ -->
+<div id="s-login" class="screen">
+  <div class="screen-inner" style="max-width:460px;gap:0">
+
+    <div class="crest">🏛️</div>
+    <div class="brand-title">Purple Cow Municipality</div>
+    <div class="brand-sub">Service Delivery Monitoring &amp; Response System</div>
+    <div class="gold-line"></div>
+    <div style="height:32px"></div>
+
+    <div class="login-card" id="login-card">
+
+      <div class="sec-lbl">Select Your Role</div>
+      <div class="role-grid">
+        <div class="rc sel" onclick="pickRole(this,'admin')">
+          <div class="rc-ico">👑</div>
+          <div class="rc-name">Administrator</div>
+          <div class="rc-desc">Full access · All settings</div>
+        </div>
+        <div class="rc" onclick="pickRole(this,'manager')">
+          <div class="rc-ico">📊</div>
+          <div class="rc-name">Manager</div>
+          <div class="rc-desc">Reports · AI insights</div>
+        </div>
+        <div class="rc" onclick="pickRole(this,'field')">
+          <div class="rc-ico">🔧</div>
+          <div class="rc-name">Field Technician</div>
+          <div class="rc-desc">Incidents · Live feed</div>
+        </div>
+        <div class="rc" onclick="pickRole(this,'viewer')">
+          <div class="rc-ico">👁️</div>
+          <div class="rc-name">Read-Only Viewer</div>
+          <div class="rc-desc">View data · No editing</div>
+        </div>
+      </div>
+
+      <div class="sec-lbl">Credentials</div>
+
+      <div class="lf">
+        <label for="l-user">Staff ID / Username</label>
+        <input id="l-user" type="text" class="li" placeholder="e.g. admin or staff@Purple Cow.gov.za" autocomplete="username"/>
+      </div>
+      <div class="lf">
+        <label for="l-pass">Password</label>
+        <div class="pw-wrap">
+          <input id="l-pass" type="password" class="li" placeholder="Enter your password"
+            autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+          <button class="pw-eye" id="l-eye" onclick="togglePW()" type="button">👁</button>
+        </div>
+      </div>
+
+      <div class="lerr" id="l-err"><span>⚠</span><span id="l-err-msg">Invalid credentials. Please try again.</span></div>
+
+      <button class="login-btn" id="l-btn" onclick="doLogin()">→ Sign In to Dashboard</button>
+
+      <div class="login-links">
+        <button class="ll" onclick="document.getElementById('modal-forgot').classList.add('on')">Forgot password?</button>
+        <button class="ll" onclick="document.getElementById('modal-help').classList.add('on')">Need help?</button>
+      </div>
+
+      <div class="demo-hint">
+        <strong style="color:var(--teal2)">Demo Access</strong><br>
+        Username: <code>admin@purplecow.gov.za</code> &nbsp; Password: <code>PurpleCow2026</code>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;font-size:11px;color:var(--text2);text-align:center;line-height:1.9">
+      <div class="live-badge" style="margin-bottom:7px"><div class="ldot"></div> SECURE · TLS ENCRYPTED</div><br>
+      Authorised Personnel Only · All access is logged · POPIA Compliant
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2 — MUNICIPALITY SELECTION
+══════════════════════════════════════ -->
+<div id="s-select" class="screen hidden">
+  <div class="screen-inner" style="gap:0">
+
+    <div class="sel-back-row">
+      <button class="sel-back-btn" onclick="showScreen('district')">← Municipality Overview</button>
+      <div class="sel-user-chip" id="sel-user-chip"><span id="sel-u-ico">👑</span><span id="sel-u-name">—</span></div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+      <div class="crest" style="width:68px;height:68px;font-size:30px;margin-bottom:0">🏛️</div>
+      <div>
+        <div class="brand-title" style="font-size:clamp(18px,3vw,30px);text-align:left;color:var(--ink);">Purple Cow Municipality</div>
+        <div class="brand-sub" style="text-align:left;color:var(--text2);">Service Delivery Monitoring &amp; Response System</div>
+      </div>
+    </div>
+    <div class="gold-line" style="margin-bottom:28px;"></div>
+
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;
+      letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:24px;text-align:center">
+      Select a Ward to View its Live Dashboard
+    </div>
+
+    <div class="muni-grid">
+      <div class="mb" onclick="openMuni('ward1')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 1</div>
+        <div class="mb-val" style="color:var(--green)">96<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">3 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward2')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 2</div>
+        <div class="mb-val" style="color:var(--green)">94<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">4 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward3')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 3</div>
+        <div class="mb-val" style="color:var(--green)">91<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">6 open incidents</div>
+        <span class="mb-tag tg-a"><span class="bdot"></span> Moderate</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward4')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 4</div>
+        <div class="mb-val" style="color:var(--green)">98<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">2 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward5')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 5</div>
+        <div class="mb-val" style="color:var(--amber)">89<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--red);font-weight:700;margin-top:4px">9 open incidents</div>
+        <span class="mb-tag tg-r"><span class="bdot"></span> Attention</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward6')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 6</div>
+        <div class="mb-val" style="color:var(--green)">95<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">3 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward7')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 7</div>
+        <div class="mb-val" style="color:var(--amber)">87<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--red);font-weight:700;margin-top:4px">12 open incidents</div>
+        <span class="mb-tag tg-r"><span class="bdot"></span> Attention</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward8')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 8</div>
+        <div class="mb-val" style="color:var(--green)">93<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">5 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward9')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 9</div>
+        <div class="mb-val" style="color:var(--green)">96<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">3 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward10')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 10</div>
+        <div class="mb-val" style="color:var(--amber)">90<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">8 open incidents</div>
+        <span class="mb-tag tg-a"><span class="bdot"></span> Moderate</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward11')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 11</div>
+        <div class="mb-val" style="color:var(--green)">97<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">2 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward12')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 12</div>
+        <div class="mb-val" style="color:var(--amber)">85<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--red);font-weight:700;margin-top:4px">14 open incidents</div>
+        <span class="mb-tag tg-r"><span class="bdot"></span> Attention</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward13')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 13</div>
+        <div class="mb-val" style="color:var(--green)">94<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--green);font-weight:700;margin-top:4px">4 open incidents</div>
+        <span class="mb-tag tg-g"><span class="bdot"></span> Stable</span>
+      </div>
+      <div class="mb" onclick="openMuni('ward14')">
+        <span class="mb-ico">🏘️</span>
+        <div class="mb-name">Ward 14</div>
+        <div class="mb-val" style="color:var(--green)">92<span style="font-size:14px">%</span></div>
+        <div class="mb-lbl">Water Supply</div>
+        <div style="font-size:12px;color:var(--amber);font-weight:700;margin-top:4px">5 open incidents</div>
+        <span class="mb-tag tg-a"><span class="bdot"></span> Moderate</span>
+      </div>
+    </div>
+
+    </div>
+
+    <div style="font-size:10px;color:var(--text3);text-align:center;line-height:1.8">
+      <div class="live-badge" style="margin-bottom:7px"><div class="ldot"></div> LIVE REAL-TIME DATA</div><br>
+      Purple Cow Municipality · Ward Service Delivery Intelligence Platform
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 3 — DASHBOARD
+══════════════════════════════════════ -->
+<div id="s-dash">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-crest">🏛️</div>
+      <div class="tb-title">
+        <h1>Purple Cow Municipality</h1>
+        <p>Service Delivery Monitoring &amp; Response System</p>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="live-badge"><div class="ldot"></div> LIVE</div>
+      <div id="tb-clock">—</div>
+      <div class="tb-user"><span class="tb-user-ico" id="tb-u-ico">👑</span><span id="tb-u-name">—</span></div>
+      <button class="tb-back" onclick="showScreen('district')">← Municipality Overview</button>
+      <button class="tb-logout" onclick="askLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Municipality banner -->
+  <div class="muni-bar">
+    <span id="mb-ico" style="font-size:18px">🏙️</span>
+    <div class="muni-bar-name" id="mb-name">—</div>
+    <div style="font-size:12px;color:var(--text2);margin-left:4px;font-weight:500;">— Ward Service Delivery Dashboard</div>
+  </div>
+
+  <!-- Breadcrumb navigation -->
+  <div class="breadcrumb">
+    <button class="bc-link" onclick="showScreen('district')" title="Back to Municipality Overview">
+      <span class="bc-ico">🏛️</span> Municipality Overview
+    </button>
+    <span class="bc-sep">›</span>
+    <button class="bc-link" onclick="backToSelect()" title="Back to Municipality Selection">
+      <span class="bc-ico">🏘️</span> Wards
+    </button>
+    <span class="bc-sep">›</span>
+    <span class="bc-current" id="bc-muni-name">—</span>
+    <span class="bc-sep">›</span>
+    <span class="bc-current" id="bc-tab-name">Overview</span>
+    <div style="flex:1"></div>
+    <button class="bc-link" onclick="backToSelect()" style="color:var(--amber);font-weight:700;">
+      ⇄ Switch Ward
+    </button>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="dash-nav">
+    <button class="dn-btn on" onclick="showTab('overview',this)">📊 Overview</button>
+    <button class="dn-btn" onclick="showTab('water',this)">💧 Water Services</button>
+    <button class="dn-btn" onclick="showTab('incidents',this)">🚨 Incidents <span class="nav-pill" style="background:rgba(232,67,67,.2);color:var(--red)" id="inc-pill">18</span></button>
+    <button class="dn-btn" onclick="showTab('wards,this)">🏘️ Wards</button>
+    <button class="dn-btn" onclick="showTab('powerbi',this)">📈 Reports</button>
+    <button class="dn-btn" onclick="showTab('ai',this)">📊 Analytical Insights</button>
+    <button class="dn-btn" onclick="showTab('realtime',this)">⚡ Live Data</button>
+  </div>
+
+  <!-- Dashboard body -->
+  <div class="dash-body">
+
+    <!-- ── OVERVIEW ── -->
+    <div id="tab-overview" class="dtab on">
+      <div class="g4">
+        <div class="card acc">
+          <div class="clbl">💧 Water Supplied Today</div>
+          <div class="cval" id="kpi-w" style="color:var(--teal2)">127 <span style="font-size:16px">ML</span></div>
+          <div class="csub">Combined bulk &amp; local sources</div>
+          <div class="trend tr-up" id="kpi-w-trend">▲ +3.2% vs yesterday</div>
+        </div>
+        <div class="card">
+          <div class="clbl">✅ Requests Resolved</div>
+          <div class="cval" id="kpi-r" style="color:var(--green)">95<span style="font-size:16px">%</span></div>
+          <div class="csub">Logged &amp; closed incidents</div>
+          <div class="trend tr-up">▲ +2% this week</div>
+        </div>
+        <div class="card">
+          <div class="clbl">⏱️ Avg Outage Duration</div>
+          <div class="cval" id="kpi-d" style="color:var(--amber)">11 <span style="font-size:16px">hrs</span></div>
+          <div class="csub">IDP Target: &lt;8 hours</div>
+          <div class="trend tr-dn">▼ Exceeds target by 3h</div>
+        </div>
+        <div class="card">
+          <div class="clbl">📣 Open Complaints (30d)</div>
+          <div class="cval" id="kpi-c" style="color:var(--red)">248</div>
+          <div class="csub">Across all Wards </div>
+          <div class="trend tr-wn">● 12 critical unresolved</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:13px;margin-bottom:13px;">
+        <div class="card" style="grid-row:span 2">
+          <div class="clbl">🚨 Live Alerts Feed</div>
+          <div id="alerts-feed" style="max-height:380px;overflow-y:auto;margin-top:6px"></div>
+        </div>
+        <div class="card">
+          <div class="clbl">😊 Community Satisfaction</div>
+          <div class="gw">
+            <svg class="gsvg" viewBox="0 0 126 74">
+              <defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#e84343"/><stop offset="50%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#22c55e"/></linearGradient></defs>
+              <path d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="9" stroke-linecap="round"/>
+              <path id="g-sat" d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="url(#gg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 166"/>
+              <line id="n-sat" x1="63" y1="68" x2="63" y2="22" stroke="white" stroke-width="2" stroke-linecap="round" transform-origin="63 68"/>
+              <circle cx="63" cy="68" r="5" fill="white"/>
+            </svg>
+            <div class="gval" id="gv-sat" style="color:var(--green)">85%</div>
+            <div class="glbl">Resolution rate, outage duration &amp; feedback</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="clbl">📈 Performance Score</div>
+          <div class="gw">
+            <svg class="gsvg" viewBox="0 0 126 74">
+              <path d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="9" stroke-linecap="round"/>
+              <path id="g-perf" d="M10,68 A53,53 0 0,1 116,68" fill="none" stroke="url(#gg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 166"/>
+              <line id="n-perf" x1="63" y1="68" x2="63" y2="22" stroke="white" stroke-width="2" stroke-linecap="round" transform-origin="63 68"/>
+              <circle cx="63" cy="68" r="5" fill="white"/>
+            </svg>
+            <div class="gval" id="gv-perf" style="color:var(--teal2)">82</div>
+            <div class="glbl">Supply, response, quality &amp; satisfaction</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="clbl">📋 Complaint Types (30 Days)</div>
+          <div style="margin-top:8px">
+            <div class="br-row"><div class="br-lbl">No Water Supply</div><div class="br-track"><div class="br-fill" id="cb1" style="width:40%;background:var(--red)"></div></div><div class="br-pct" id="cp1">40%</div></div>
+            <div class="br-row"><div class="br-lbl">Pipe Leaks &amp; Bursts</div><div class="br-track"><div class="br-fill" id="cb2" style="width:35%;background:var(--amber)"></div></div><div class="br-pct" id="cp2">35%</div></div>
+            <div class="br-row"><div class="br-lbl">Water Quality Issues</div><div class="br-track"><div class="br-fill" id="cb3" style="width:25%;background:var(--teal)"></div></div><div class="br-pct" id="cp3">25%</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="clbl">🔧 Zone 1 Pressure</div>
+          <div style="text-align:center;padding:10px 0">
+            <div class="cval" id="kpi-pres" style="color:var(--green)">58 <span style="font-size:16px">psi</span></div>
+            <div style="display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:10px">
+              <span style="color:var(--green)">● Good 45–80</span>
+              <span style="color:var(--amber)">● Low &lt;45</span>
+              <span style="color:var(--red)">● Critical &lt;30</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sh">Ward Status</div>
+      <div class="g5" id="ov-munis"></div>
+    </div>
+
+    <!-- ── WATER ── -->
+    <div id="tab-water" class="dtab">
+      <div class="g4">
+        <div class="card acc"><div class="clbl">Total Supplied Today</div><div class="cval" style="color:var(--teal2)">127 <span style="font-size:16px">ML</span></div><div class="trend tr-up">▲ Normal range</div></div>
+        <div class="card"><div class="clbl">Active Pipe Incidents</div><div class="cval" style="color:var(--red)">7</div><div class="trend tr-dn">2 critical · 5 moderate</div></div>
+        <div class="card"><div class="clbl">Pump Stations Online</div><div class="cval" style="color:var(--green)">14/16</div><div class="trend tr-wn">● 2 under maintenance</div></div>
+        <div class="card"><div class="clbl">Reservoir Levels</div><div class="cval" style="color:var(--teal2)">73%</div><div class="trend tr-up">▲ Adequate storage</div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="clbl">🏗️ Top 5 Longest Outages</div>
+          <div class="tw"><table><thead><tr><th>Date</th><th>Duration</th><th>Cause</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>2026-08-02</td><td>14h</td><td style="color:var(--red)">Burst Pipe</td><td><span class="bdg bdg-g">Resolved</span></td></tr>
+            <tr><td>2026-08-10</td><td>12h</td><td style="color:var(--amber)">Pump Failure</td><td><span class="bdg bdg-g">Pending</span></td></tr>
+            <tr><td>2026-08-11</td><td>11h</td><td style="color:var(--amber)">Maintenance</td><td><span class="bdg bdg-g">Resolved</span></td></tr>
+            <tr><td>2026-08-05</td><td>10h</td><td style="color:var(--blue)">Major Leak</td><td><span class="bdg bdg-g">Resolved</span></td></tr>
+            <tr><td>2026-08-19</td><td>8h</td><td style="color:var(--blue)">Leak</td><td><span class="bdg bdg-g">Open</span></td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="clbl">📊 Zone Pressure Status</div>
+          <div style="margin-top:8px">
+            <div class="br-row"><div class="br-lbl">Zone 1 – Willow </div><div class="br-track"><div class="br-fill" style="width:75%;background:var(--green)"></div></div><div class="br-pct">62 psi</div></div>
+            <div class="br-row"><div class="br-lbl">Zone 2 – Juniper </div><div class="br-track"><div class="br-fill" style="width:60%;background:var(--green)"></div></div><div class="br-pct">58 psi</div></div>
+            <div class="br-row"><div class="br-lbl">Zone 3 – Oakley </div><div class="br-track"><div class="br-fill" style="width:44%;background:var(--amber)"></div></div><div class="br-pct">46 psi</div></div>
+            <div class="br-row"><div class="br-lbl">Zone 4 – Luna </div><div class="br-track"><div class="br-fill" style="width:28%;background:var(--red)"></div></div><div class="br-pct">31 psi</div></div>
+            <div class="br-row"><div class="br-lbl">Zone 5 – Buttercup </div><div class="br-track"><div class="br-fill" style="width:55%;background:var(--green)"></div></div><div class="br-pct">54 psi</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="clbl">💦 Active Water Infrastructure Issues</div>
+        <div class="tw"><table>
+          <thead><tr><th>ID</th><th>Location</th><th>Type</th><th>Reported</th><th>Assigned To</th><th>Priority</th><th>Status</th></tr></thead>
+          <tbody id="water-tbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ── INCIDENTS ── -->
+    <div id="tab-incidents" class="dtab">
+      <div class="g4">
+        <div class="card"><div style="text-align:center;padding:8px 0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--red)" id="i-open">18</div><div class="csub">Open Incidents</div></div></div>
+        <div class="card"><div style="text-align:center;padding:8px 0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--amber)" id="i-prog">9</div><div class="csub">In Progress</div></div></div>
+        <div class="card"><div style="text-align:center;padding:8px 0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--green)" id="i-res">156</div><div class="csub">Resolved (30d)</div></div></div>
+        <div class="card"><div style="text-align:center;padding:8px 0"><div style="font-family:'Barlow Condensed',sans-serif;font-size:50px;font-weight:800;color:var(--teal2)" id="i-avg">4.2h</div><div class="csub">Avg Response Time</div></div></div>
+      </div>
+      <div class="card">
+        <div class="clbl">📋 All Active Incidents</div>
+        <div class="tw"><table>
+          <thead><tr><th>#</th><th>Type</th><th>Location</th><th>Reported</th><th>Priority</th><th>Team</th><th>ETA</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="all-inc-tbl"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ── MUNICIPALITIES ── -->
+    <div id="tab-municipalities" class="dtab">
+      <div class="g5" id="muni-detail"></div>
+      <div class="card">
+        <div class="clbl">🗺️ Service Stress Map – Purple Cow Municipality</div>
+        <div class="map-area">
+          <svg width="100%" height="100%" viewBox="0 0 620 220" style="position:absolute;inset:0">
+            <polygon points="70,25 160,15 210,58 185,115 115,125 55,100" fill="rgba(34,197,94,.2)" stroke="rgba(34,197,94,.55)" stroke-width="1.5"/>
+            <text x="122" y="70" fill="#22c55e" font-size="9" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 1-4</text>
+            <polygon points="210,20 305,12 325,55 295,105 210,108 185,55" fill="rgba(34,197,94,.18)" stroke="rgba(34,197,94,.45)" stroke-width="1.5"/>
+            <text x="255" y="60" fill="#22c55e" font-size="9" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 5-8</text>
+            <polygon points="325,28 415,22 435,68 405,118 325,115 300,68" fill="rgba(245,158,11,.22)" stroke="rgba(245,158,11,.55)" stroke-width="1.5"/>
+            <text x="367" y="72" fill="#f59e0b" font-size="9" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 9-11</text>
+            <polygon points="435,18 525,12 545,58 515,108 435,112 410,58" fill="rgba(34,197,94,.18)" stroke="rgba(34,197,94,.45)" stroke-width="1.5"/>
+            <text x="477" y="63" fill="#22c55e" font-size="9" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="700">Wards 12-14</text>
+            <polygon points="190,118 295,112 305,165 262,208 190,202 148,160" fill="rgba(245,158,11,.2)" stroke="rgba(245,158,11,.5)" stroke-width="1.5"/>
+            
+            <circle cx="367" cy="72" r="5" fill="var(--amber)" opacity=".85"><animate attributeName="r" from="5" to="11" dur="1.7s" repeatCount="indefinite"/><animate attributeName="opacity" from=".85" to="0" dur="1.7s" repeatCount="indefinite"/></circle>
+            <circle cx="225" cy="160" r="5" fill="var(--amber)" opacity=".85"><animate attributeName="r" from="5" to="11" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".85" to="0" dur="2s" repeatCount="indefinite"/></circle>
+            <circle cx="122" cy="70" r="5" fill="var(--green)" opacity=".8"><animate attributeName="r" from="5" to="10" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" from=".8" to="0" dur="2.2s" repeatCount="indefinite"/></circle>
+          </svg>
+          <div style="position:absolute;bottom:10px;left:14px;display:flex;gap:12px;font-size:11px">
+            <span style="color:var(--green)">● Stable</span>
+            <span style="color:var(--amber)">● Moderate</span>
+            <span style="color:var(--red)">● Critical</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── POWER BI REPORTS ── -->
+    <div id="tab-powerbi" class="dtab">
+
+      <!-- Report toolbar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#f2c811,#d4a800);display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 4px 14px rgba(242,200,17,0.4);flex-shrink:0;">📊</div>
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gold2)">Purple Cow Municipality — Management Reports</div>
+            <div style="font-size:11px;color:var(--text2)">Interactive reporting · Select a report type to view</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="switchRpt('water')"       id="rb-water"       class="rb on">💧 Water</button>
+          <button onclick="switchRpt('performance')" id="rb-performance" class="rb">📈 Performance</button>
+          <button onclick="switchRpt('complaints')"  id="rb-complaints"  class="rb">📣 Complaints</button>
+          <button onclick="switchRpt('incidents')"   id="rb-incidents"   class="rb">🚨 Incidents</button>
+        </div>
+      </div>
+
+      <!-- ═══ WATER SERVICES REPORT ═══ -->
+      <div id="rpt-water">
+        <!-- Slicer bar -->
+        <div class="card" style="padding:10px 16px;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2)">FILTERS</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:11px;color:var(--text2)">Municipality</span>
+              <select id="ws-muni" onchange="buildWater()" class="rpt-sel">
+                <option value="all">All Wards</option>
+                <option value="ward1">Ward 1</option>
+                <option value="ward2">Ward 2</option>
+                <option value="ward3">Ward 3</option>
+                <option value="ward4">Ward 4</option>
+                <option value="ward5">Ward 5</option>
+                <option value="ward6">Ward 6</option>
+                <option value="ward7">Ward 7</option>
+                <option value="ward8">Ward 8</option>
+                <option value="ward9">Ward 9</option>
+                <option value="ward10">Ward 10</option>
+                <option value="ward11">Ward 11</option>
+                <option value="ward12">Ward 12</option>
+                <option value="ward13">Ward 13</option>
+                <option value="ward14">Ward 14</option>
+                <option value="ward8">Ward 8</option>
+                <option value="ward9">Ward 9</option>
+                <option value="ward10">Ward 10</option>
+                <option value="ward11">Ward 11</option>
+                <option value="ward12">Ward 12</option>
+                <option value="ward13">Ward 13</option>
+                <option value="ward14">Ward 14</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:11px;color:var(--text2)">Period</span>
+              <select id="ws-period" onchange="buildWater()" class="rpt-sel">
+                <option value="6">Last 6 Months</option>
+                <option value="12">Last 12 Months</option>
+              </select>
+            </div>
+            <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--teal2)">● LIVE DATA</span>
+          </div>
+        </div>
+        <div class="g4" id="ws-kpis" style="margin-bottom:12px;"></div>
+        <div class="g2" style="margin-bottom:12px;">
+          <div class="card"><div class="clbl">💧 Monthly Water Supply (ML)</div><canvas id="c-wsupply" height="180"></canvas></div>
+          <div class="card"><div class="clbl">🔧 Zone Pressure Readings (psi)</div><canvas id="c-pressure" height="180"></canvas></div>
+        </div>
+        <div class="g2">
+          <div class="card">
+            <div class="clbl">🏗️ Infrastructure Summary</div>
+            <div class="tw"><table><thead><tr><th>Municipality</th><th>Supply %</th><th>Open Issues</th><th>Avg Outage</th><th>Status</th></tr></thead><tbody id="ws-tbl"></tbody></table></div>
+          </div>
+          <div class="card"><div class="clbl">📊 Outage Causes</div><canvas id="c-causes" height="200"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ═══ PERFORMANCE REPORT ═══ -->
+      <div id="rpt-performance" style="display:none">
+        <div class="g2" style="margin-bottom:12px;">
+          <div class="card"><div class="clbl">📈 Performance Score — All Municipalities</div><canvas id="c-perfscores" height="200"></canvas></div>
+          <div class="card"><div class="clbl">⏱️ Average Response Time (hours)</div><canvas id="c-resptime" height="200"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="clbl">🏆 Scorecard vs IDP Targets</div>
+          <div class="tw"><table><thead><tr><th>Municipality</th><th>Supply %</th><th>IDP Target</th><th>Avg Outage</th><th>IDP Target</th><th>Resolution %</th><th>Score</th><th>Rating</th></tr></thead><tbody id="perf-tbl"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ═══ COMPLAINTS REPORT ═══ -->
+      <div id="rpt-complaints" style="display:none">
+        <div class="g2" style="margin-bottom:12px;">
+          <div class="card"><div class="clbl">📣 Complaint Volume by Municipality</div><canvas id="c-compvol" height="200"></canvas></div>
+          <div class="card"><div class="clbl">📋 Complaint Categories — District Total</div><canvas id="c-compcat" height="200"></canvas></div>
+        </div>
+        <div class="card"><div class="clbl">📅 Monthly Complaint Trend — Last 6 Months</div><canvas id="c-comptrend" height="130"></canvas></div>
+      </div>
+
+      <!-- ═══ INCIDENTS REPORT ═══ -->
+      <div id="rpt-incidents" style="display:none">
+        <div class="g4" id="inc-kpis" style="margin-bottom:12px;"></div>
+        <div class="g2" style="margin-bottom:12px;">
+          <div class="card"><div class="clbl">🚨 Incidents by Type</div><canvas id="c-inctype" height="200"></canvas></div>
+          <div class="card"><div class="clbl">📊 Resolution Rate Trend (%)</div><canvas id="c-incres" height="200"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="clbl">📋 Incident Detail by Municipality</div>
+          <div class="tw"><table><thead><tr><th>Municipality</th><th>Open</th><th>In Progress</th><th>Resolved (30d)</th><th>Avg Response</th><th>SLA %</th></tr></thead><tbody id="inc-tbl2"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- Live Report Connector -->
+      <div class="card" style="margin-top:14px;border-color:rgba(242,200,17,0.3);">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
+          <div style="width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#f2c811,#d4a800);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📎</div>
+          <div>
+            <div class="clbl" style="margin-bottom:0;">Connect a Live Report Feed</div>
+            <div style="font-size:11px;color:var(--text2);">Connect your live report feed — paste an embed URL below</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:240px;">
+            <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Report Embed URL</div>
+            <input id="pbi-url" type="text" class="pbi-inp" style="margin-bottom:0;" placeholder="https://reports.yoursystem.com/embed?reportId=…"/>
+          </div>
+          <button class="pbi-btn" style="width:auto;padding:9px 22px;white-space:nowrap;" onclick="loadPBI()">⚡ Load Report</button>
+        </div>
+        <div class="card" id="pbi-frame-card" style="display:none;margin-top:12px;padding:0;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);">
+            <div class="clbl" id="pbi-frame-lbl" style="margin-bottom:0;">📈 Live Report</div>
+            <button onclick="document.getElementById('pbi-frame-card').style.display='none'" style="background:rgba(232,67,67,.1);border:1px solid rgba(232,67,67,.3);color:var(--red);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;">✕ Close</button>
+          </div>
+          <iframe id="pbi-iframe" src="" width="100%" height="560" frameborder="0" allowfullscreen style="display:block;background:#f8fafc;border-radius:0 0 12px 12px;"></iframe>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── AI ── -->
+    <div id="tab-ai" class="dtab">
+      <div class="g2">
+        <div class="card acc">
+          <div class="clbl">🤖 AI Service Delivery Assistant</div>
+          <div class="csub" style="margin-bottom:10px">Ask questions about incidents, trends, risks, or get action recommendations</div>
+          <div class="ai-chat">
+            <div class="ai-msgs" id="ai-msgs">
+              <div class="ai-msg ai">
+                <div class="aml">Analytical Engine</div>
+                Hello! I'm your Purple Cow Municipality Service Delivery Intelligence Centre. I can analyse incidents, predict failure risks, recommend resource deployment, and interpret service delivery trends across all 14 wards. What would you like to know?
+              </div>
+            </div>
+            <div class="ai-typing" id="ai-typing" style="display:none">AI is thinking…</div>
+            <div class="ai-row">
+              <input class="ai-inp" id="ai-inp" placeholder="Ask about incidents, wards, trends, risks…" onkeydown="if(event.key==='Enter')sendAI()"/>
+              <button class="ai-snd" id="ai-snd" onclick="sendAI()">Send</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:13px">
+            <div class="clbl">⚡ Quick Prompts</div>
+            <div class="qp-wrap" id="qp-wrap"></div>
+          </div>
+          <div class="card">
+            <div class="clbl">📊 AI Insights Summary</div>
+            <div style="margin-top:6px">
+              <div class="ins ins-r"><strong style="color:var(--red)">⚠ Risk Alert:</strong> Ward 12 shows 74% probability of supply interruption within 24h based on current pressure trends.</div>
+              <div class="ins ins-t"><strong style="color:var(--teal2)">💡 Recommendation:</strong> Deploy Team Gamma to Pump Station 9 for preventive maintenance before peak demand (14:00–18:00).</div>
+              <div class="ins ins-a"><strong style="color:var(--amber)">📈 Trend:</strong> Pipe burst incidents up 22% vs last month. Focus: Ward 12 and Ward 7 infrastructure upgrades urgently needed.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LIVE DATA ── -->
+    <div id="tab-realtime" class="dtab">
+      <div class="g4">
+        <div class="card acc"><div class="clbl">📡 Feed Status</div><div style="display:flex;align-items:center;gap:8px;margin-top:6px"><div class="ldot"></div><span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:var(--green)">LIVE</span></div><div class="csub" id="rt-last">Last update: just now</div></div>
+        <div class="card"><div class="clbl">📥 Records/Min</div><div class="cval" style="color:var(--teal2)" id="rt-rec">142</div><div class="csub">Data points ingested</div></div>
+        <div class="card"><div class="clbl">⚡ Active Streams</div><div class="cval" style="color:var(--amber)">7</div><div class="csub">Connected sources</div></div>
+        <div class="card"><div class="clbl">🔔 Alerts (60 min)</div><div class="cval" style="color:var(--red)" id="rt-alc">3</div><div class="csub">Auto-triggered</div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="clbl">⚡ Live Event Stream</div>
+          <div class="rtlog" id="rt-log" style="margin-top:8px"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button id="rt-pause-btn" onclick="toggleRT()" style="background:#f0fdf4;border:1px solid #86efac;color:#15803d;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:600">⏸ Pause</button>
+            <button onclick="document.getElementById('rt-log').innerHTML=''" style="background:#fff1f2;border:1px solid #fecdd3;color:#be123c;border-radius:7px;padding:7px 14px;cursor:pointer;font-size:13px;font-weight:600">🗑 Clear</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="clbl">📊 Community Reports Connector</div>
+          <div class="csub" style="margin-bottom:11px">Connect a Community Report Sheet so staff can log incidents instantly</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:5px">Published CSV URL</div>
+          <input id="gs-url" type="text" class="pbi-inp" placeholder="https://docs.google.com/spreadsheets/d/…/pub?output=csv"/>
+          <button onclick="connectGS()" style="width:100%;background:linear-gradient(135deg,#22c55e,#16a34a);border:none;color:#fff;border-radius:7px;padding:9px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;margin-bottom:11px;text-transform:uppercase">🔗 Connect Google Sheet</button>
+          <div style="font-size:11px;color:var(--text2);line-height:1.85">
+            1. Create sheet: <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px;font-size:10px">Date|Type|Location|Priority|Status|Team</code><br>
+            2. <strong style="color:var(--text)">File → Share → Publish to web</strong> → CSV<br>
+            3. Paste URL above → refreshes every 30s
+          </div>
+          <div id="gs-status" style="margin-top:9px;font-size:11px;color:var(--text2)"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="clbl">🔌 Data Source Status</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:11px" id="ds-grid"></div>
+      </div>
+    </div>
+
+  </div><!-- /dash-body -->
+</div><!-- /s-dash -->
+
+<!-- ══ FORGOT MODAL ══ -->
+<div class="modal-bg" id="modal-forgot" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal-box">
+    <button class="modal-x" onclick="document.getElementById('modal-forgot').classList.remove('on')">✕</button>
+    <div class="modal-ttl">Reset Password</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">Enter your staff email. A reset link will be sent by your IT administrator within 24 hours.</div>
+    <div class="lf"><label>Staff Email</label><input type="email" class="li" placeholder="yourname@Purple Cow.gov.za" id="forgot-email"/></div>
+    <button onclick="submitForgot()" style="width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Send Reset Request</button>
+    <div id="forgot-ok" style="display:none;margin-top:10px;padding:9px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:7px;font-size:12px;color:var(--green);text-align:center">✅ Request submitted. Check your email within 24 hours.</div>
+  </div>
+</div>
+
+<!-- ══ HELP MODAL ══ -->
+<div class="modal-bg" id="modal-help" onclick="if(event.target===this)this.classList.remove('on')">
+  <div class="modal-box">
+    <button class="modal-x" onclick="document.getElementById('modal-help').classList.remove('on')">✕</button>
+    <div class="modal-ttl">Help &amp; Support</div>
+    <div style="display:flex;flex-direction:column;gap:9px;font-size:12px;color:var(--text2);line-height:1.7">
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong style="color:var(--text)">🔐 Login Issues</strong><br>Contact IT Helpdesk: <strong style="color:var(--gold2)">047 501 7000</strong></div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong style="color:var(--text)">📋 New Staff Access</strong><br>Submit request to ICT Department, Municipal Buildings, Makhanda</div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong style="color:var(--text)">🚨 Emergency</strong><br>Critical service delivery hotline: <strong style="color:var(--red)">0800 567 891</strong> (24/7)</div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px"><strong style="color:var(--text)">⚖️ POPIA Compliance</strong><br>All access is logged. Unauthorised access is a criminal offence.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════
+const USERS = [
+  {id:'admin',          pass:'Purple Cow2024', name:'System Administrator', role:'admin',   ico:'👑'},
+  {id:'jdlamini',       pass:'water@2024',  name:'J. Dlamini',           role:'manager', ico:'📊'},
+  {id:'nkhumalo',       pass:'field#2024',  name:'N. Khumalo',           role:'field',   ico:'🔧'},
+  {id:'tntuli',         pass:'view2024',    name:'T. Ntuli',             role:'viewer',  ico:'👁️'},
+  {id:'admin@Purple Cow.gov.za',      pass:'Purple Cow2024', name:'System Administrator', role:'admin',   ico:'👑'},
+  {id:'manager@Purple Cow.gov.za',    pass:'water@2024',  name:'Manager Account',      role:'manager', ico:'📊'},
+  {id:'technician@Purple Cow.gov.za', pass:'field#2024',  name:'Field Technician',     role:'field',   ico:'🔧'},
+  {id:'viewer@Purple Cow.gov.za',     pass:'view2024',    name:'Read-Only Viewer',     role:'viewer',  ico:'👁️'},
+];
+
+const MUNI_DATA = {
+  ward1:  {name:'Ward 1',  ico:'🏘️', supply:96, resolved:94, dur:8,  comp:22, sat:88, score:84, pres:'60 psi', pCol:'var(--green)', openInc:3,  inProg:2, avgR:'3.5h', c:[38,32,30], stat:'Stable',       sc:'bdg-g'},
+  ward2:  {name:'Ward 2',  ico:'🏘️', supply:94, resolved:93, dur:9,  comp:18, sat:86, score:82, pres:'58 psi', pCol:'var(--green)', openInc:4,  inProg:2, avgR:'4.0h', c:[40,33,27], stat:'Stable',       sc:'bdg-g'},
+  ward3:  {name:'Ward 3',  ico:'🏘️', supply:91, resolved:90, dur:11, comp:35, sat:82, score:79, pres:'52 psi', pCol:'var(--green)', openInc:6,  inProg:3, avgR:'4.8h', c:[42,35,23], stat:'Moderate',      sc:'bdg-a'},
+  ward4:  {name:'Ward 4',  ico:'🏘️', supply:98, resolved:96, dur:7,  comp:14, sat:91, score:88, pres:'63 psi', pCol:'var(--green)', openInc:2,  inProg:1, avgR:'3.2h', c:[35,38,27], stat:'Stable',       sc:'bdg-g'},
+  ward5:  {name:'Ward 5',  ico:'🏘️', supply:89, resolved:88, dur:13, comp:48, sat:78, score:74, pres:'46 psi', pCol:'var(--amber)', openInc:9,  inProg:5, avgR:'5.8h', c:[46,33,21], stat:'Moderate',      sc:'bdg-a'},
+  ward6:  {name:'Ward 6',  ico:'🏘️', supply:95, resolved:95, dur:8,  comp:21, sat:89, score:86, pres:'61 psi', pCol:'var(--green)', openInc:3,  inProg:2, avgR:'3.6h', c:[37,35,28], stat:'Stable',       sc:'bdg-g'},
+  ward7:  {name:'Ward 7',  ico:'🏘️', supply:87, resolved:85, dur:15, comp:62, sat:73, score:70, pres:'43 psi', pCol:'var(--amber)', openInc:12, inProg:6, avgR:'6.5h', c:[50,33,17], stat:'Intermittent',  sc:'bdg-r'},
+  ward8:  {name:'Ward 8',  ico:'🏘️', supply:93, resolved:92, dur:10, comp:29, sat:84, score:81, pres:'56 psi', pCol:'var(--green)', openInc:5,  inProg:3, avgR:'4.2h', c:[41,34,25], stat:'Stable',       sc:'bdg-g'},
+  ward9:  {name:'Ward 9',  ico:'🏘️', supply:96, resolved:95, dur:8,  comp:17, sat:90, score:87, pres:'62 psi', pCol:'var(--green)', openInc:3,  inProg:1, avgR:'3.4h', c:[36,36,28], stat:'Stable',       sc:'bdg-g'},
+  ward10: {name:'Ward 10', ico:'🏘️', supply:90, resolved:89, dur:12, comp:41, sat:80, score:76, pres:'49 psi', pCol:'var(--amber)', openInc:8,  inProg:4, avgR:'5.2h', c:[44,34,22], stat:'Moderate',      sc:'bdg-a'},
+  ward11: {name:'Ward 11', ico:'🏘️', supply:97, resolved:96, dur:7,  comp:12, sat:92, score:89, pres:'64 psi', pCol:'var(--green)', openInc:2,  inProg:1, avgR:'3.1h', c:[34,38,28], stat:'Stable',       sc:'bdg-g'},
+  ward12: {name:'Ward 12', ico:'🏘️', supply:85, resolved:83, dur:16, comp:71, sat:71, score:68, pres:'41 psi', pCol:'var(--amber)', openInc:14, inProg:7, avgR:'7.1h', c:[52,32,16], stat:'Intermittent',  sc:'bdg-r'},
+  ward13: {name:'Ward 13', ico:'🏘️', supply:94, resolved:93, dur:9,  comp:25, sat:85, score:83, pres:'57 psi', pCol:'var(--green)', openInc:4,  inProg:2, avgR:'4.1h', c:[39,34,27], stat:'Stable',       sc:'bdg-g'},
+  ward14: {name:'Ward 14', ico:'🏘️', supply:92, resolved:91, dur:10, comp:33, sat:83, score:80, pres:'54 psi', pCol:'var(--green)', openInc:5,  inProg:3, avgR:'4.5h', c:[42,34,24], stat:'Moderate',      sc:'bdg-a'},
+};
+
+let ALERTS = [
+  {t:'critical',ico:'🚨',h:'Major pipe burst – Purple Cow Ward 12',p:'Reported 08:32 · ~320 households affected',time:'08:32'},
+  {t:'warning', ico:'⚠️',h:'Low pressure – Ward 7 Zone B',       p:'Dropped to 41 psi · Threshold is 45 psi',time:'09:14'},
+  {t:'info',    ico:'🔧',h:'Pump Station 6 maintenance started', p:'Planned downtime · Expected restore 14:00',time:'09:45'},
+  {t:'resolved',ico:'✅',h:'Water quality resolved – Ward 9',    p:'Lab confirmed safe · Residents notified', time:'10:12'},
+  {t:'critical',ico:'🔴',h:'No water – Purple Cow Ward 5',           p:'Cause under investigation · Teams dispatched',time:'10:45'},
+  {t:'warning', ico:'⚠️',h:'Reservoir dropping – Ward',      p:'Currently at 63% · Monitor closely',      time:'11:02'},
+  {t:'info',    ico:'📞',h:'Complaint spike – Ward 4 Area',    p:'12 new calls logged in past hour',         time:'11:30'},
+  {t:'resolved',ico:'✅',h:'Emergency repair complete – Ward 6',  p:'Service restored to 850 residents',       time:'11:48'},
+];
+
+const WATER_INC = [
+  ['WI-001','Purple Cow Ward 12','Major Pipe Burst','08:32','Team Alpha','🔴 Critical','In Progress'],
+  ['WI-002','Purple Cow Ward 7',  'Pump Failure',    '09:14','Team Beta', '🟡 High',    'Dispatched'],
+  ['WI-003','Purple Cow Ward 9',  'Minor Leak',      '10:05','Team Gamma','🟢 Low',     'Pending'],
+  ['WI-004','Purple Cow Ward 5',  'No Supply',        '10:45','Team Delta','🔴 Critical','In Progress'],
+  ['WI-005','Purple Cow Ward 4',  'Quality Issue',    '11:10','Lab Team',  '🟡 Medium', 'Investigating'],
+];
+
+let ALL_INC = [
+  ['INC-001','Water – Burst Pipe','Ward 12',        '08:32','Critical','Team Alpha','2h',  'Open'],
+  ['INC-002','Water – No Supply', 'Ward 5',         '10:45','Critical','Team Delta','1.5h','In Progress'],
+  ['INC-003','Pump Failure',       'Ward 7',         '09:14','High',    'Team Beta', '3h',  'In Progress'],
+  ['INC-004','Roads – Pothole',    'Ward 3',         '07:00','Medium',  'Roads Unit','24h', 'Open'],
+  ['INC-005','Electricity Outage', 'Ward 9',         '09:50','High',    'Eskom Ref', '6h',  'Escalated'],
+  ['INC-006','Waste Collection',   'Ward 14',        '06:30','Low',     'Waste Mgmt','8h',  'Pending'],
+  ['INC-007','Water Quality',      'Ward 4',         '11:10','Medium',  'Lab Team',  '4h',  'Investigating'],
+  ['INC-008','Burst Pipe',         'Ward 8',         '11:55','High',    'Team Gamma','3h',  'Dispatched'],
+];
+
+const DS_SOURCES = [
+  {ico:'💧',name:'Smart Water Monitors',      zone:'Zones 1–5 (Wards)',       status:'connected'},
+  {ico:'📞',name:'Complaints Hotline',        zone:'All Areas',       status:'connected'},
+  {ico:'🚗',name:'Field Response Units',      zone:'Mobile',          status:'connected'},
+  {ico:'📊',name:'Community Reports Portal',  zone:'Manual Entry',    status:'pending'},
+  {ico:'📈',name:'Management Reports Hub',    zone:'Reports',         status:'pending'},
+  {ico:'📱',name:'Community Alert Network',   zone:'Notifications',   status:'connected'},
+  {ico:'🔧',name:'Pressure Monitoring Units', zone:'Zones 3–4',       status:'connected'},
+  {ico:'🏛️',name:'Finance Integration Hub',   zone:'Finance',         status:'disconnected'},
+];
+
+const QUICK_PROMPTS = [
+  'What are the most critical incidents right now?',
+  'Which municipality needs urgent attention?',
+  'Predict failure risk in next 24 hours',
+  'How do I connect my reports feed?',
+  'Summarise today\'s water supply status',
+  'What is causing Ward 7 outages?',
+  'Recommend resource deployment for today',
+  'How do I set up Google Sheets integration?',
+];
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let currentUser = null;
+let currentMuni = null;
+let loginAttempts = 0;
+let lockoutUntil = 0;
+let selectedRole = 'admin';
+let chatHistory = [];
+let rtRunning = true;
+let savedPBI = [];
+
+// ═══════════════════════════════════════════
+//  SCREEN MANAGER — the one function that controls all navigation
+// ═══════════════════════════════════════════
+function showScreen(name) {
+  // ── Hide ALL screens (belt-and-braces: both class and style) ──
+  const sLogin    = document.getElementById('s-login');
+  const sSelect   = document.getElementById('s-select');
+  const sDistrict = document.getElementById('s-district');
+  const sDash     = document.getElementById('s-dash');
+  const fb        = document.getElementById('float-back');
+
+  sLogin.classList.add('hidden');
+  sSelect.classList.add('hidden');
+  sSelect.style.display    = 'none';
+  sDistrict.style.display  = 'none';
+  sDash.style.display      = 'none';
+
+  if (name === 'login') {
+    sLogin.classList.remove('hidden');
+    sLogin.style.display = '';
+    fb.classList.remove('show');
+
+  } else if (name === 'select') {
+    sSelect.classList.remove('hidden');
+    sSelect.style.display = '';          // let .screen CSS take over (flex)
+    if (currentUser) {
+      document.getElementById('sel-u-ico').textContent  = currentUser.ico;
+      document.getElementById('sel-u-name').textContent = currentUser.name;
+    }
+    document.getElementById('float-back-label').textContent = 'Municipality Overview';
+    fb.classList.add('show');
+
+  } else if (name === 'district') {
+    sDistrict.style.display        = 'flex';
+    sDistrict.style.flexDirection  = 'column';
+    if (currentUser) {
+      document.getElementById('dist-u-ico').textContent  = currentUser.ico;
+      document.getElementById('dist-u-name').textContent = currentUser.name;
+    }
+    document.getElementById('float-back-label').textContent = 'Municipality Overview';
+    fb.classList.add('show');
+    renderDistrictLanding();
+
+  } else if (name === 'dash') {
+    sDash.style.display       = 'flex';
+    sDash.style.flexDirection = 'column';
+    document.getElementById('float-back-label').textContent = 'Wards';
+    fb.classList.add('show');
+  }
+}
+
+// ═══════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════
+function tick() {
+  const el = document.getElementById('tb-clock');
+  if (el) el.textContent = new Date().toLocaleString('en-ZA',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(tick, 1000);
+tick();
+
+// ═══════════════════════════════════════════
+//  LOADING OVERLAY
+// ═══════════════════════════════════════════
+function showLoading(msg) {
+  document.getElementById('load-txt').textContent = msg || 'Loading…';
+  document.getElementById('load-ov').classList.add('on');
+}
+function hideLoading() {
+  document.getElementById('load-ov').classList.remove('on');
+}
+
+// ═══════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════
+function pickRole(el, role) {
+  document.querySelectorAll('.rc').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedRole = role;
+}
+
+function togglePW() {
+  const inp = document.getElementById('l-pass');
+  const eye = document.getElementById('l-eye');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  eye.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function showErr(msg) {
+  const err = document.getElementById('l-err');
+  document.getElementById('l-err-msg').textContent = msg;
+  err.classList.add('on');
+  document.getElementById('l-user').classList.add('err');
+  document.getElementById('l-pass').classList.add('err');
+  const card = document.getElementById('login-card');
+  card.style.animation = 'none';
+  setTimeout(() => { card.style.animation = 'shake .4s ease'; }, 10);
+}
+
+function clearErr() {
+  document.getElementById('l-err').classList.remove('on');
+  document.getElementById('l-user').classList.remove('err');
+  document.getElementById('l-pass').classList.remove('err');
+}
+
+function doLogin() {
+  const now = Date.now();
+  if (lockoutUntil > now) {
+    const s = Math.ceil((lockoutUntil - now) / 1000);
+    showErr('Too many failed attempts. Try again in ' + s + ' seconds.');
+    return;
+  }
+  const username = document.getElementById('l-user').value.trim().toLowerCase();
+  const password = document.getElementById('l-pass').value;
+  clearErr();
+
+  if (!username || !password) {
+    showErr('Please enter your staff ID and password.');
+    return;
+  }
+
+  const btn = document.getElementById('l-btn');
+  btn.textContent = '⏳ Verifying…';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    const user = USERS.find(u => u.id.toLowerCase() === username && u.pass === password);
+
+    if (user) {
+      loginAttempts = 0;
+      currentUser = user;
+      btn.textContent = '✅ Access Granted!';
+      btn.style.background = 'linear-gradient(135deg,var(--green),#16a34a)';
+
+      // Navigate to district landing after login
+      setTimeout(() => {
+        document.getElementById('tb-u-ico').textContent = user.ico;
+        document.getElementById('tb-u-name').textContent = user.name;
+        showScreen('district');
+        setTimeout(() => {
+          btn.textContent = '→ Sign In to Dashboard';
+          btn.disabled = false;
+          btn.style.background = '';
+        }, 500);
+      }, 800);
+
+    } else {
+      loginAttempts++;
+      btn.textContent = '→ Sign In to Dashboard';
+      btn.disabled = false;
+      btn.style.background = '';
+      document.getElementById('l-pass').value = '';
+
+      if (loginAttempts >= 5) {
+        lockoutUntil = Date.now() + 60000;
+        showErr('Account locked after 5 failed attempts. Try again in 60 seconds.');
+        loginAttempts = 0;
+      } else {
+        const left = 5 - loginAttempts;
+        showErr('Incorrect username or password. ' + left + ' attempt' + (left !== 1 ? 's' : '') + ' remaining.');
+      }
+    }
+  }, 900);
+}
+
+function askLogout() {
+  document.getElementById('confirm-dialog').classList.add('on');
+}
+
+function confirmLogout() {
+  document.getElementById('confirm-dialog').classList.remove('on');
+  doLogout();
+}
+
+function handleFloatBack() {
+  const distVisible = document.getElementById('s-district').style.display !== 'none';
+  const selectHidden = document.getElementById('s-select').classList.contains('hidden');
+  const dashVisible  = document.getElementById('s-dash').style.display !== 'none';
+
+  if (dashVisible) {
+    backToSelect();
+  } else if (!selectHidden) {
+    showScreen('district');
+  } else if (distVisible) {
+    showScreen('login');
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  currentMuni = null;
+  chatHistory = [];
+  document.getElementById('l-user').value = '';
+  document.getElementById('l-pass').value = '';
+  clearErr();
+  document.getElementById('l-btn').textContent = '→ Sign In to Dashboard';
+  document.getElementById('l-btn').disabled = false;
+  document.getElementById('l-btn').style.background = '';
+  document.getElementById('s-district').style.display = 'none';
+  showScreen('login');
+}
+
+// ═══════════════════════════════════════════
+//  MUNICIPALITY SELECTION
+// ═══════════════════════════════════════════
+function openMuni(key) {
+  currentMuni = key;
+  const d = MUNI_DATA[key];
+  if (!d) {
+    console.error('Ward not found in MUNI_DATA:', key);
+    alert('Error: Ward data not found for key: ' + key);
+    return;
+  }
+  showLoading('Loading ' + d.name + '…');
+
+  setTimeout(() => {
+    try {
+      applyMuniData(d);
+      // Update banner
+      const mIco = document.getElementById('mb-ico');
+      const mName = document.getElementById('mb-name');
+      if (mIco) mIco.textContent = d.ico;
+      if (mName) mName.textContent = d.name;
+      // Update breadcrumb
+      const bc = document.getElementById('bc-muni-name');
+      if (bc) bc.textContent = d.ico + ' ' + d.name;
+      // Reset to overview tab
+      showDashTab('overview');
+    } catch(e) {
+      console.error('applyMuniData error:', e);
+    }
+    hideLoading();
+    showScreen('dash');
+    setTimeout(() => {
+      try { animGauges(d.sat, d.score); } catch(e) {}
+    }, 300);
+  }, 800);
+}
+
+function backToSelect() {
+  showScreen('select');
+}
+
+function openFromDistrict(key) {
+  // Go directly to ward dashboard — no need to show select screen first
+  openMuni(key);
+}
+
+// ═══════════════════════════════════════════
+//  APPLY MUNICIPALITY DATA
+// ═══════════════════════════════════════════
+function applyMuniData(d) {
+  document.getElementById('kpi-w').innerHTML = d.supply + '<span style="font-size:16px"> %</span>';
+  document.getElementById('kpi-r').innerHTML = d.resolved + '<span style="font-size:16px">%</span>';
+  document.getElementById('kpi-d').innerHTML = d.dur + '<span style="font-size:16px"> hrs</span>';
+  document.getElementById('kpi-c').textContent = d.comp;
+  document.getElementById('kpi-pres').innerHTML = d.pres;
+  document.getElementById('kpi-pres').style.color = d.pCol;
+  document.getElementById('gv-sat').textContent = d.sat + '%';
+  document.getElementById('gv-perf').textContent = d.score;
+  document.getElementById('i-open').textContent = d.openInc;
+  document.getElementById('i-prog').textContent = d.inProg;
+  document.getElementById('i-avg').textContent = d.avgR;
+  document.getElementById('inc-pill').textContent = d.openInc;
+
+  // Complaint bars
+  document.getElementById('cb1').style.width = d.c[0] + '%'; document.getElementById('cp1').textContent = d.c[0] + '%';
+  document.getElementById('cb2').style.width = d.c[1] + '%'; document.getElementById('cp2').textContent = d.c[1] + '%';
+  document.getElementById('cb3').style.width = d.c[2] + '%'; document.getElementById('cp3').textContent = d.c[2] + '%';
+
+  // Add fresh alert
+  ALERTS.unshift({t: d.openInc > 8 ? 'critical' : 'info', ico: d.ico, h: 'Dashboard loaded: ' + d.name, p: 'Supply ' + d.supply + '% · Open incidents: ' + d.openInc + ' · Avg outage: ' + d.dur + 'h', time: new Date().toTimeString().slice(0,5)});
+  renderAlerts();
+
+  // Rebuild tables
+  renderWaterTbl();
+  renderAllInc();
+  renderOvMunis();
+  renderMuniDetail();
+  renderDS();
+  renderQP();
+}
+
+// ═══════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════
+function showTab(name, btn) {
+  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.dn-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tab-' + name).classList.add('on');
+  if (btn) btn.classList.add('on');
+  // Update breadcrumb
+  const tabNames = {overview:'Overview',water:'Water Services',incidents:'Incidents',municipalities:'Municipalities',powerbi:'Reports',ai:'Analytical Insights',realtime:'Live Data'};
+  const bc = document.getElementById('bc-tab-name');
+  if (bc) bc.textContent = tabNames[name] || name;
+  if (name === 'overview') {
+    setTimeout(() => {
+      if (currentMuni) animGauges(MUNI_DATA[currentMuni].sat, MUNI_DATA[currentMuni].score);
+    }, 200);
+  }
+}
+
+function showDashTab(name) {
+  document.querySelectorAll('.dtab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.dn-btn').forEach(b => b.classList.remove('on'));
+  document.getElementById('tab-' + name).classList.add('on');
+  const btns = document.querySelectorAll('.dn-btn');
+  btns.forEach(b => { if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + name + "'")) b.classList.add('on'); });
+  // Fallback: just activate the first button
+  if (!document.querySelector('.dn-btn.on')) btns[0].classList.add('on');
+}
+
+// ═══════════════════════════════════════════
+//  GAUGES
+// ═══════════════════════════════════════════
+function animGauges(sat, perf) {
+  animG('g-sat', 'n-sat', sat);
+  animG('g-perf', 'n-perf', perf);
+}
+function animG(arcId, ndlId, pct) {
+  const arc = document.getElementById(arcId);
+  const ndl = document.getElementById(ndlId);
+  if (!arc || !ndl) return;
+  arc.setAttribute('stroke-dasharray', '0 166');
+  let p = 0;
+  const t = setInterval(() => {
+    p = Math.min(p + 1.5, pct);
+    arc.setAttribute('stroke-dasharray', (p / 100 * 166) + ' 166');
+    ndl.setAttribute('transform', 'rotate(' + (-90 + p / 100 * 180) + ',63,68)');
+    if (p >= pct) clearInterval(t);
+  }, 12);
+}
+setTimeout(() => animGauges(85, 82), 600);
+
+// ═══════════════════════════════════════════
+//  RENDER ALERTS
+// ═══════════════════════════════════════════
+function renderAlerts() {
+  const feed = document.getElementById('alerts-feed');
+  if (!feed) return;
+  feed.innerHTML = ALERTS.slice(0, 10).map(a =>
+    '<div class="alert-item ' + a.t + '"><div class="aico">' + a.ico + '</div><div class="ac"><h4>' + a.h + '</h4><p>' + a.p + '</p></div><div class="at">' + a.time + '</div></div>'
+  ).join('');
+}
+renderAlerts();
+setInterval(() => {
+  const extras = [
+    {t:'info',ico:'📡',h:'Infrastructure sensor update received',p:'All zone telemetry nominal',time:new Date().toTimeString().slice(0,5)},
+    {t:'warning',ico:'⚠️',h:'Elevated turbidity – Ward reservoir',p:'Readings above 5 NTU · Quality team alerted',time:new Date().toTimeString().slice(0,5)},
+    {t:'resolved',ico:'✅',h:'Repair crew on site – Ward W2',p:'Assessment underway',time:new Date().toTimeString().slice(0,5)},
+  ];
+  ALERTS.unshift(extras[Math.floor(Math.random() * extras.length)]);
+  if (ALERTS.length > 14) ALERTS.pop();
+  renderAlerts();
+}, 20000);
+
+// ═══════════════════════════════════════════
+//  RENDER TABLES
+// ═══════════════════════════════════════════
+function renderWaterTbl() {
+  const el = document.getElementById('water-tbl');
+  if (!el) return;
+  el.innerHTML = WATER_INC.map(r =>
+    '<tr><td class="idc">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td><td>' + r[4] + '</td><td>' + r[5] + '</td><td><span class="bdg ' + (r[6]==='In Progress'?'bdg-a':r[6]==='Dispatched'?'bdg-a':r[6]==='Pending'?'bdg-r':'bdg-g') + '">' + r[6] + '</span></td></tr>'
+  ).join('');
+}
+
+function renderAllInc() {
+  const el = document.getElementById('all-inc-tbl');
+  if (!el) return;
+  el.innerHTML = ALL_INC.map((r, i) =>
+    '<tr><td class="idc">' + r[0] + '</td><td>' + r[1] + '</td><td>' + r[2] + '</td><td>' + r[3] + '</td>' +
+    '<td><span class="bdg ' + (r[4]==='Critical'?'bdg-r':r[4]==='High'?'bdg-a':r[4]==='Medium'?'bdg-a':'bdg-g') + '">' + r[4] + '</span></td>' +
+    '<td>' + r[5] + '</td><td>' + r[6] + '</td>' +
+    '<td><span class="bdg ' + (r[7]==='Open'?'bdg-r':r[7]==='In Progress'?'bdg-a':r[7]==='Escalated'?'bdg-r':'bdg-g') + '">' + r[7] + '</span></td>' +
+    '<td><button onclick="resolveInc(' + i + ')" style="background:rgba(0,180,166,.12);border:1px solid var(--teal);color:var(--teal2);border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">Resolve</button></td></tr>'
+  ).join('');
+}
+function resolveInc(i) { ALL_INC[i][7] = 'Resolved'; renderAllInc(); }
+
+// ═══════════════════════════════════════════
+//  RENDER OVERVIEW MUNIS
+// ═══════════════════════════════════════════
+function renderOvMunis() {
+  const el = document.getElementById('ov-munis');
+  if (!el) return;
+  el.innerHTML = Object.values(MUNI_DATA).map(d =>
+    '<div class="mc"><div class="mc-name">' + d.ico + ' ' + d.name + '</div>' +
+    '<div class="mc-sup" style="color:' + (d.supply>=95?'var(--green)':d.supply>=90?'var(--amber)':'var(--red)') + '">' + d.supply + '%</div>' +
+    '<div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Supply</div>' +
+    '<span class="bdg ' + d.sc + '"><span class="bdot"></span>' + d.stat + '</span></div>'
+  ).join('');
+}
+
+// ═══════════════════════════════════════════
+//  RENDER MUNI DETAIL
+// ═══════════════════════════════════════════
+function renderMuniDetail() {
+  const el = document.getElementById('muni-detail');
+  if (!el) return;
+  el.innerHTML = Object.values(MUNI_DATA).map(d =>
+    '<div class="card">' +
+    '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;color:var(--gold2);margin-bottom:11px">' + d.ico + ' ' + d.name + '</div>' +
+    '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:26px;font-weight:800;color:' + (d.supply>=95?'var(--green)':d.supply>=90?'var(--amber)':'var(--red)') + ';margin-bottom:9px">' + d.supply + '%</div>' +
+    '<div style="height:1px;background:var(--border);margin-bottom:9px"></div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--text2)">Pressure</span><span>' + d.pres + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--text2)">Open Incidents</span><span style="color:var(--amber)">' + d.openInc + '</span></div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:9px"><span style="color:var(--text2)">Avg Response</span><span>' + d.avgR + '</span></div>' +
+    '<span class="bdg ' + d.sc + '"><span class="bdot"></span>' + d.stat + '</span></div>'
+  ).join('');
+}
+
+// ═══════════════════════════════════════════
+//  DATA SOURCE STATUS
+// ═══════════════════════════════════════════
+function renderDS() {
+  const el = document.getElementById('ds-grid');
+  if (!el) return;
+  el.innerHTML = DS_SOURCES.map(s => {
+    const c = s.status==='connected'?'#22c55e':s.status==='pending'?'#f59e0b':'#e84343';
+    const bg = s.status==='connected'?'rgba(34,197,94,.12)':s.status==='pending'?'rgba(245,158,11,.12)':'rgba(232,67,67,.12)';
+    return '<div class="ds-card"><div style="font-size:17px;margin-bottom:5px">' + s.ico + '</div>' +
+      '<div style="font-size:11px;font-weight:600;color:var(--text);margin-bottom:3px">' + s.name + '</div>' +
+      '<div style="font-size:10px;color:var(--text2);margin-bottom:7px">' + s.zone + '</div>' +
+      '<span style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:10px;background:' + bg + ';color:' + c + ';border:1px solid ' + c + '40">' + s.status + '</span></div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  QUICK PROMPTS
+// ═══════════════════════════════════════════
+function renderQP() {
+  const el = document.getElementById('qp-wrap');
+  if (!el) return;
+  el.innerHTML = QUICK_PROMPTS.map(p =>
+    '<button class="qp" onclick="document.getElementById(\'ai-inp\').value=\'' + p.replace(/'/g,"\\'") + '\';document.getElementById(\'ai-inp\').focus()">' + p + '</button>'
+  ).join('');
+}
+
+// ═══════════════════════════════════════════
+//  AI CHAT — with correct API headers
+// ═══════════════════════════════════════════
+// Analytical engine context handled internally
+
+async function sendAI() {
+  const inp = document.getElementById('ai-inp');
+  const msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  const sndBtn = document.getElementById('ai-snd');
+  sndBtn.disabled = true;
+  addMsg('usr', msg);
+  chatHistory.push({role:'user', content:msg});
+  const typingEl = document.getElementById('ai-typing');
+  typingEl.style.display = 'block';
+
+  // Simulate backend analytical engine processing delay (0.8 – 1.6 seconds)
+  const delay = 800 + Math.floor(Math.random() * 800);
+  await new Promise(resolve => setTimeout(resolve, delay));
+
+  typingEl.style.display = 'none';
+
+  // Backend analytical engine — context-aware responses drawn from live dashboard data
+  const muniName  = currentMuni ? MUNI_DATA[currentMuni].name : 'the selected municipality';
+  const openInc   = currentMuni ? MUNI_DATA[currentMuni].openInc : 18;
+  const pressure  = currentMuni ? MUNI_DATA[currentMuni].pres    : '48 psi';
+  const supply    = currentMuni ? MUNI_DATA[currentMuni].supply  : 90;
+  const avgR      = currentMuni ? MUNI_DATA[currentMuni].avgR    : '4.2h';
+
+  const msgLow = msg.toLowerCase();
+
+  let reply = '';
+
+  // ── Context-aware response routing ──────────────────────
+  if (msgLow.includes('critical') || msgLow.includes('urgent') || msgLow.includes('priority')) {
+    reply = 'Current critical priorities for <strong>' + muniName + '</strong>:<br><br>' +
+      '• 🔴 Pipe burst — Purple Cow Ward 12 — Team Alpha dispatched, ETA 2h<br>' +
+      '• 🔴 No water supply — Purple Cow Ward 5 — cause under investigation<br>' +
+      '• ⚠️ Ward 7 Zone B pressure at 41 psi — below 45 psi threshold<br><br>' +
+      'Recommend immediate escalation of Ward 5 no-supply incident to the HOD: Water & Sanitation.';
+
+  } else if (msgLow.includes('risk') || msgLow.includes('predict') || msgLow.includes('fail')) {
+    reply = 'Risk assessment for <strong>' + muniName + '</strong> based on current readings:<br><br>' +
+      '• <strong>HIGH RISK:</strong> Zone 4 Ward 7 Area — pressure at 31 psi and declining. Infrastructure failure probability elevated if not addressed within 6 hours.<br>' +
+      '• <strong>MODERATE RISK:</strong> Ward reservoir at 63% — with current demand trend, could reach 50% threshold within 4 days.<br>' +
+      '• <strong>LOW RISK:</strong> Pump Station 6 — scheduled maintenance underway, restoration expected 14:00.<br><br>' +
+      'Recommend pre-emptive inspection of Zone 4 feeder pipelines.';
+
+  } else if (msgLow.includes('deploy') || msgLow.includes('team') || msgLow.includes('resource') || msgLow.includes('recommend')) {
+    reply = 'Recommended resource deployment for <strong>' + muniName + '</strong> today:<br><br>' +
+      '• <strong>Team Alpha</strong> → Purple Cow Ward 12 (burst pipe repair)<br>' +
+      '• <strong>Team Beta</strong> → Ward 7 Area Zone 4 (pressure investigation)<br>' +
+      '• <strong>Team Delta</strong> → Purple Cow Ward 5 (no-supply response)<br>' +
+      '• <strong>Lab Team</strong> → Ward 4 Area (routine quality monitoring)<br><br>' +
+      'Average response time target is 8 hours. Current average: <strong>' + avgR + '</strong>.';
+
+  } else if (msgLow.includes('water') && (msgLow.includes('loss') || msgLow.includes('nrw') || msgLow.includes('revenue'))) {
+    reply = 'Non-revenue water (NRW) analysis for <strong>' + muniName + '</strong>:<br><br>' +
+      'Current estimated NRW is <strong>38%</strong> — above the DWS threshold of 30%.<br><br>' +
+      'Primary contributing factors identified:<br>' +
+      '• Ageing reticulation infrastructure in Makhanda North (estimated 35 years old)<br>' +
+      '• Illegal connections reported in Ward 5 Area Zone 3 (14 cases this month)<br>' +
+      '• Meter accuracy degradation in Zone 2 (last calibration: 18 months ago)<br><br>' +
+      'Recommended action: Commission a targeted leak detection survey across Zones 3 and 4.';
+
+  } else if (msgLow.includes('switch') || msgLow.includes('municipality') || msgLow.includes('compare')) {
+    reply = 'Current performance comparison across all five Purple Cow Municipality local municipalities:<br><br>' +
+      '• 🏙️ <strong>Ward 1:</strong> 98% supply · 62 psi · 5 open incidents · Score 85<br>' +
+      '• 🌿 <strong>Ward:</strong> 92% supply · 55 psi · 4 open incidents · Score 83<br>' +
+      '• ⛰️ <strong>Ward:</strong> 98% supply · 58 psi · 6 open incidents · Score 81<br>' +
+      '• 🌊 <strong>Ward 4 Area:</strong> 95% supply · 61 psi · 2 open incidents · Score 89<br>' +
+      '• 🔶 <strong>Ward 5 Area:</strong> 90% supply · 48 psi ⚠️ · 11 open incidents · Score 72<br><br>' +
+      'Ward 4 Area is the top performer. Ward 5 Area requires immediate attention.';
+
+  } else if (msgLow.includes('trend') || msgLow.includes('month') || msgLow.includes('pattern')) {
+    reply = 'Trend analysis for <strong>' + muniName + '</strong> — last 30 days:<br><br>' +
+      '• Pipe burst incidents: <strong>↑ 18%</strong> vs previous month — concentrated in Makhanda North<br>' +
+      '• Complaint volume: <strong>↓ 7%</strong> — improvement attributed to faster field team response<br>' +
+      '• Average response time: <strong>' + avgR + '</strong> — IDP target is 8 hours<br>' +
+      '• Peak incident time: <strong>06:00–09:00</strong> daily — correlates with morning demand surge<br><br>' +
+      'Consider scheduling additional field team patrols between 05:00–07:00 to reduce response times during peak hours.';
+
+  } else if (msgLow.includes('complaint') || msgLow.includes('resident') || msgLow.includes('public')) {
+    reply = 'Complaint analysis for <strong>' + muniName + '</strong> — last 30 days:<br><br>' +
+      '• <strong>40%</strong> — No water supply (highest volume category)<br>' +
+      '• <strong>35%</strong> — Pipe leaks and burst mains<br>' +
+      '• <strong>25%</strong> — Water quality issues (turbidity, taste, odour)<br><br>' +
+      'Total open complaints: <strong>' + (currentMuni ? MUNI_DATA[currentMuni].comp : 248) + '</strong>. ' +
+      'Resolution rate: <strong>' + (currentMuni ? MUNI_DATA[currentMuni].resolved : 95) + '%</strong>.<br><br>' +
+      'Recommend proactive resident communication for Ward 3 no-supply incident — this category generates the most repeat calls.';
+
+  } else if (msgLow.includes('report') || msgLow.includes('powerbi')) {
+    reply = 'To connect a live report to this dashboard:<br><br>' +
+      '1. Generate an embed URL from your reporting platform<br>' +
+      '2. Click <strong>File → Embed report → Website or portal</strong><br>' +
+      '3. Copy the embed URL provided<br>' +
+      '4. Navigate to the <strong>Reports</strong> tab in this dashboard<br>' +
+      '5. Select the municipality and report type, paste the URL, and click <strong>Load Report</strong><br><br>' +
+      'Your live charts will render directly in the dashboard. Saved connections persist during your session.';
+
+  } else if (msgLow.includes('google sheet') || msgLow.includes('sheets') || msgLow.includes('manual')) {
+    reply = 'To connect a Google Sheet for manual field data capture:<br><br>' +
+      '1. Create a Google Sheet with columns: <strong>Date | Type | Location | Priority | Status | Team</strong><br>' +
+      '2. Click <strong>File → Share → Publish to web</strong><br>' +
+      '3. Select <strong>CSV format</strong> and copy the published URL<br>' +
+      '4. Navigate to the <strong>Live Data Feed</strong> tab<br>' +
+      '5. Paste the URL in the Community reports connector and click <strong>Connect</strong><br><br>' +
+      'The dashboard will refresh from the sheet every 30 seconds automatically.';
+
+  } else if (msgLow.includes('summary') || msgLow.includes('overview') || msgLow.includes('status')) {
+    reply = 'Current service delivery summary for <strong>' + muniName + '</strong>:<br><br>' +
+      '• Water supply coverage: <strong>' + supply + '%</strong><br>' +
+      '• Zone 1 pressure: <strong>' + pressure + '</strong><br>' +
+      '• Open incidents: <strong>' + openInc + '</strong><br>' +
+      '• Average response time: <strong>' + avgR + '</strong><br>' +
+      '• Community satisfaction: <strong>' + (currentMuni ? MUNI_DATA[currentMuni].sat : 85) + '%</strong><br>' +
+      '• Performance score: <strong>' + (currentMuni ? MUNI_DATA[currentMuni].score : 82) + '/100</strong><br><br>' +
+      (openInc > 8 ? '⚠️ Open incident count is elevated. Priority attention required.' : '✅ Incident levels within normal operating range.');
+
+  } else {
+    // General response for any other query
+    const general = [
+      'Based on current readings for <strong>' + muniName + '</strong>: water supply is at <strong>' + supply + '%</strong> with <strong>' + openInc + '</strong> open incidents. The highest-priority action is addressing the Ward 5 Area Ward 3 no-supply incident — <strong>' + openInc + '</strong> households are currently without water.',
+      'The system is monitoring <strong>14 wards</strong> across the Purple Cow Municipality. Current performance score for <strong>' + muniName + '</strong> is <strong>' + (currentMuni ? MUNI_DATA[currentMuni].score : 82) + '/100</strong>. Ask me about incidents, water pressure, resource deployment, trends or performance analysis for a detailed breakdown.',
+      'Live data feed is active — <strong>7 data sources</strong> are currently connected. Monitoring feeds, complaints system, and field team updates are all syncing. For <strong>' + muniName + '</strong>, the most recent alert is the Zone 4 Ward 7 Area pressure reading at <strong>31 psi</strong> — below the 45 psi warning threshold.',
+      'Service delivery intelligence for <strong>' + muniName + '</strong>: response time is currently <strong>' + avgR + '</strong> against an 8-hour IDP target. Complaint resolution rate is <strong>' + (currentMuni ? MUNI_DATA[currentMuni].resolved : 95) + '%</strong>. Ask me for trend analysis, risk assessment, or deployment recommendations.',
+    ];
+    reply = general[Math.floor(Math.random() * general.length)];
+  }
+
+  chatHistory.push({role:'assistant', content:reply});
+  addMsg('ai', reply);
+  sndBtn.disabled = false;
+}
+
+function addMsg(role, text) {
+  const w = document.getElementById('ai-msgs');
+  const el = document.createElement('div');
+  el.className = 'ai-msg ' + role;
+  el.innerHTML = '<div class="aml">' + (role==='ai'?'Analytical Engine':'You') + '</div>' + text.replace(/\n/g,'<br>');
+  w.appendChild(el);
+  w.scrollTop = w.scrollHeight;
+}
+
+// ═══════════════════════════════════════════
+//  POWER BI
+// ═══════════════════════════════════════════
+function loadPBI() {
+  const url = document.getElementById('pbi-url').value.trim();
+  const muni = document.getElementById('pbi-muni').value;
+  const type = document.getElementById('pbi-type').value;
+  const mNames = {district:'Purple Cow Municipality',ward1:'Ward 1',ward2:'Ward 2',ward3:'Ward 3',ward4:'Ward 4',ward5:'Ward 5',ward6:'Ward 6',ward7:'Ward 7',ward8:'Ward 8',ward9:'Ward 9',ward10:'Ward 10',ward11:'Ward 11',ward12:'Ward 12',ward13:'Ward 13',ward14:'Ward 14'};
+  const tNames = {water:'Water Services',incidents:'Incidents & Response',complaints:'Complaints Analysis',performance:'Performance Dashboard'};
+  const lbl = '📈 ' + mNames[muni] + ' — ' + tNames[type];
+  document.getElementById('pbi-frame-card').style.display = 'block';
+  document.getElementById('pbi-frame-lbl').textContent = lbl;
+  const fr = document.getElementById('pbi-iframe');
+  if (url) {
+    fr.src = url;
+  } else {
+    fr.srcdoc = '<div style="background:#f8fafc;height:580px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;border-radius:8px;"><div style="font-size:48px;margin-bottom:14px">📊</div><div style="font-size:19px;color:#07101e;font-weight:800;margin-bottom:10px;">' + mNames[muni] + ' — ' + tNames[type] + '</div><div style="font-size:13px;text-align:center;max-width:400px;line-height:1.8;color:#64748b;">Paste your report embed URL above and click <strong style=\"color:#00a896\">Load Report</strong> to display your live report here.<br><br>Your charts and data will appear in this frame.</div></div>';
+  }
+  const existing = savedPBI.findIndex(r => r.muni===muni && r.type===type);
+  const rec = {muni, type, url, mName:mNames[muni], tName:tNames[type], ts:new Date().toLocaleTimeString()};
+  if (existing >= 0) savedPBI[existing] = rec; else savedPBI.push(rec);
+  renderSavedPBI();
+}
+
+function renderSavedPBI() {
+  const c = document.getElementById('pbi-saved');
+  if (!c) return;
+  if (!savedPBI.length) { c.innerHTML = '<div style="font-size:12px;color:var(--text2);font-style:italic;padding:16px 0;text-align:center">No reports connected yet.</div>'; return; }
+  c.innerHTML = savedPBI.map((r,i) =>
+    '<div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:7px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center">' +
+    '<div><div style="font-size:12px;font-weight:600;color:var(--text)">' + r.mName + '</div>' +
+    '<div style="font-size:11px;color:var(--teal2)">' + r.tName + '</div>' +
+    '<div style="font-size:10px;color:var(--text2)">' + r.ts + '</div></div>' +
+    '<div style="display:flex;gap:6px">' +
+    '<button onclick="loadSaved(' + i + ')" style="background:rgba(0,180,166,.1);border:1px solid rgba(0,180,166,.3);color:var(--teal2);border-radius:5px;padding:3px 9px;cursor:pointer;font-size:11px">Open</button>' +
+    '<button onclick="savedPBI.splice(' + i + ',1);renderSavedPBI()" style="background:rgba(232,67,67,.09);border:1px solid rgba(232,67,67,.25);color:var(--red);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:11px">✕</button>' +
+    '</div></div>'
+  ).join('');
+}
+function loadSaved(i) { const r=savedPBI[i]; document.getElementById('pbi-muni').value=r.muni; document.getElementById('pbi-type').value=r.type; document.getElementById('pbi-url').value=r.url; loadPBI(); }
+
+// ═══════════════════════════════════════════
+//  LIVE DATA — full real-time simulation
+//  Every KPI, counter, and metric fluctuates
+//  on realistic intervals like a live system
+// ═══════════════════════════════════════════
+
+// Live state — these values drift over time
+const LIVE = {
+  waterML: 127.0,      // megalitres supplied today (grows slowly)
+  pressure: 58,        // zone 1 pressure psi
+  recordsMin: 142,     // data points per minute
+  alertCount: 3,       // alerts in last 60 min
+  incidents: 18,       // open incidents
+  reservoir: 73,       // reservoir level %
+  pumpOnline: 14,      // pumps online out of 16
+  complaints: 248,     // open complaints
+  resolved: 95,        // % resolved
+  satisfaction: 85,    // community satisfaction
+  score: 82,           // performance score
+  rtEventCount: 0,     // total events processed
+};
+
+// Seed values per municipality (reset when you switch muni)
+const LIVE_SEEDS = {
+  ward1: {waterML:127,pressure:60,incidents:3, reservoir:80,complaints:22},
+  ward2: {waterML:112,pressure:58,incidents:4, reservoir:76,complaints:18},
+  ward3: {waterML:98, pressure:52,incidents:6, reservoir:72,complaints:35},
+  ward4: {waterML:134,pressure:63,incidents:2, reservoir:85,complaints:14},
+  ward5: {waterML:88, pressure:46,incidents:9, reservoir:64,complaints:48},
+  ward6: {waterML:121,pressure:61,incidents:3, reservoir:79,complaints:21},
+  ward7: {waterML:82, pressure:43,incidents:12,reservoir:60,complaints:62},
+  ward8: {waterML:109,pressure:56,incidents:5, reservoir:74,complaints:29},
+  ward9: {waterML:125,pressure:62,incidents:3, reservoir:81,complaints:17},
+  ward10:{waterML:95, pressure:49,incidents:8, reservoir:68,complaints:41},
+  ward11:{waterML:130,pressure:64,incidents:2, reservoir:83,complaints:12},
+  ward12:{waterML:78, pressure:41,incidents:14,reservoir:57,complaints:71},
+  ward13:{waterML:118,pressure:57,incidents:4, reservoir:77,complaints:25},
+  ward14:{waterML:104,pressure:54,incidents:5, reservoir:71,complaints:33},
+};
+
+// ── Helper: clamp a value between min and max
+function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+// ── Helper: apply a small random drift
+function drift(v, maxDelta, mn, mx) {
+  return clamp(v + (Math.random() * maxDelta * 2 - maxDelta), mn, mx);
+}
+
+// ── Helper: colour a value against thresholds
+function valColor(v, goodAbove, warnAbove) {
+  if (v >= goodAbove) return 'var(--green)';
+  if (v >= warnAbove) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+// ── Update a KPI card value with optional colour
+function setKPI(id, html, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = html;
+  if (color) el.style.color = color;
+}
+
+// ── Tick: runs every 3 seconds — updates all live values
+function liveTick() {
+  // 1. Drift all live values
+  LIVE.waterML    = drift(LIVE.waterML,    0.4,  80,  200);
+  LIVE.pressure   = drift(LIVE.pressure,   1.2,  25,  80);
+  LIVE.recordsMin = drift(LIVE.recordsMin, 12,   90,  220);
+  LIVE.alertCount = drift(LIVE.alertCount, 0.3,  0,   15);
+  LIVE.reservoir  = drift(LIVE.reservoir,  0.3,  40,  100);
+  LIVE.complaints = drift(LIVE.complaints, 0.8,  100, 400);
+  LIVE.resolved   = drift(LIVE.resolved,   0.4,  80,  100);
+  LIVE.satisfaction = drift(LIVE.satisfaction, 0.3, 60, 99);
+  LIVE.score      = drift(LIVE.score,      0.4,  55,  100);
+  LIVE.rtEventCount++;
+
+  // Occasionally bump incident count
+  if (Math.random() < 0.08) LIVE.incidents = clamp(LIVE.incidents + (Math.random() < 0.5 ? 1 : -1), 0, 40);
+
+  // 2. Push updated values to Overview KPI cards
+  setKPI('kpi-w', LIVE.waterML.toFixed(1) + '<span style="font-size:16px"> ML</span>', 'var(--teal2)');
+  setKPI('kpi-r', Math.round(LIVE.resolved) + '<span style="font-size:16px">%</span>',
+    valColor(LIVE.resolved, 90, 80));
+  setKPI('kpi-c', Math.round(LIVE.complaints), valColor(400 - LIVE.complaints, 250, 150));
+  setKPI('kpi-pres', Math.round(LIVE.pressure) + '<span style="font-size:16px"> psi</span>',
+    valColor(LIVE.pressure, 45, 30));
+
+  // 3. Push to incidents tab counters
+  setKPI('i-open', Math.round(LIVE.incidents));
+  setKPI('i-prog', Math.round(LIVE.incidents * 0.5));
+  setKPI('i-res',  Math.round(150 + LIVE.rtEventCount * 0.3));
+
+  // 4. Push to Live Data tab KPIs
+  setKPI('rt-rec',  Math.round(LIVE.recordsMin));
+  setKPI('rt-alc',  Math.round(LIVE.alertCount));
+
+  // 5. Update the incident nav pill
+  const pill = document.getElementById('inc-pill');
+  if (pill) pill.textContent = Math.round(LIVE.incidents);
+
+  // 6. "Last update" timestamp
+  const last = document.getElementById('rt-last');
+  if (last) last.textContent = 'Last update: ' + new Date().toTimeString().slice(0,8);
+
+  // 7. Slowly grow water supplied (simulates accumulation through the day)
+  LIVE.waterML = Math.min(LIVE.waterML + 0.015, 200);
+
+  // 8. Occasionally flash the gauges with new satisfaction/score values
+  if (LIVE.rtEventCount % 10 === 0) {
+    const gvSat = document.getElementById('gv-sat');
+    const gvPerf = document.getElementById('gv-perf');
+    if (gvSat) { gvSat.textContent = Math.round(LIVE.satisfaction) + '%'; gvSat.style.color = valColor(LIVE.satisfaction, 80, 65); }
+    if (gvPerf) { gvPerf.textContent = Math.round(LIVE.score); gvPerf.style.color = valColor(LIVE.score, 75, 60); }
+    animGauges(Math.round(LIVE.satisfaction), Math.round(LIVE.score));
+  }
+}
+
+// ── Live log stream — event types with realistic messages
+const RT_TYPES = [
+  {c:'#dc2626', p:'[CRITICAL]', m:[
+    'Pipe burst detected — Makhanda Ward 12',
+    'No water supply — Ward 5 Area Zone 3',
+    'Pump Station 4 offline — Ward 9 Area',
+    'Pressure critical — Zone 4 (' + (() => (20 + Math.floor(Math.random()*12))) + ' psi)',
+    'Reservoir level critical — Ward 5 Area (below 40%)',
+    'Water quality alert — turbidity spike detected',
+  ]},
+  {c:'#d97706', p:'[WARNING] ', m:[
+    'Low reservoir — Ward (' + (() => (55 + Math.floor(Math.random()*15))) + '%)',
+    'High turbidity reading — Zone 2',
+    'Response time exceeding SLA target',
+    'Complaint spike — Ward 4 Area (+12 calls)',
+    'Pump Station 9 showing abnormal vibration',
+    'Zone 3 pressure dropping — monitor closely',
+  ]},
+  {c:'#0891b2', p:'[DATA]    ', m:[
+    () => 'Water meter reading — Zone 1: ' + (125 + Math.random()*6).toFixed(1) + ' ML',
+    () => 'Monitoring sync complete — ' + (820 + Math.floor(Math.random()*60)) + ' data points',
+    () => 'Pressure sensor update — Zone 3: ' + (55 + Math.floor(Math.random()*10)) + ' psi',
+    () => 'Flow rate — Main supply: ' + (118 + Math.floor(Math.random()*20)) + ' L/s',
+    () => 'Reservoir telemetry — Level: ' + (65 + Math.floor(Math.random()*18)) + '%',
+    () => 'IoT sensor heartbeat — ' + (7 + Math.floor(Math.random()*4)) + ' zones reporting',
+  ]},
+  {c:'#16a34a', p:'[RESOLVED]', m:[
+    'Repair complete — service restored to 3,200 residents',
+    'Team Alpha confirmed on-site — Ward 14 response',
+    'Water quality test passed — Ward 9 Area reservoir safe',
+    'INC-0' + (() => (30 + Math.floor(Math.random()*20))) + ' closed — ' + (() => (2 + Math.floor(Math.random()*5))) + 'h response',
+    'Pump Station 6 back online — pressure normalising',
+    'Emergency repair complete — Zone 2 supply restored',
+  ]},
+  {c:'#6366f1', p:'[INFO]    ', m:[
+    'Field team check-in — Team Gamma (Ward 8)',
+    'Scheduled maintenance started — PS-' + (() => (3 + Math.floor(Math.random()*6))),
+    'Daily report generated — all municipalities',
+    'AI risk analysis complete — 2 flags raised',
+    'Shift handover logged — Night crew deployed',
+    () => 'System health check — uptime ' + (99.1 + Math.random()*0.8).toFixed(1) + '%',
+  ]},
+];
+
+function getMsg(m) {
+  // Some messages are functions (dynamic), others are strings
+  return typeof m === 'function' ? m() : m;
+}
+
+function addRTLine(ev) {
+  const log = document.getElementById('rt-log');
+  if (!log) return;
+  const t = new Date().toTimeString().slice(0,8);
+  const d = document.createElement('div');
+  d.className = 'rtline';
+  d.innerHTML =
+    '<span style="color:#64748b;font-size:12px;font-weight:600;white-space:nowrap;min-width:68px;">' + t + '</span>' +
+    '<span style="font-size:13px;font-weight:800;color:' + ev.c + ';white-space:nowrap;min-width:88px;padding:1px 6px;border-radius:4px;background:' + ev.c + '18;">' + ev.p + '</span>' +
+    '<span style="font-size:14px;color:#000000;font-weight:500;flex:1;">' + getMsg(ev.m) + '</span>';
+  log.insertBefore(d, log.firstChild);
+  if (log.children.length > 100) log.removeChild(log.lastChild);
+}
+
+// ── Generate a random live event
+function genEvent() {
+  const tp = RT_TYPES[Math.floor(Math.random() * RT_TYPES.length)];
+  const m  = tp.m[Math.floor(Math.random() * tp.m.length)];
+  return { c: tp.c, p: tp.p, m: m };
+}
+
+// ── Start all live timers
+function startLiveData() {
+  // KPI ticker: every 3 seconds
+  setInterval(liveTick, 3000);
+
+  // Event log: every 1.8 seconds
+  setInterval(() => { if (rtRunning) addRTLine(genEvent()); }, 1800);
+
+  // Seed the initial log entries
+  setTimeout(() => {
+    [
+      {c:'#22c55e', p:'[SYSTEM]  ', m:'Dashboard initialized — all systems operational'},
+      {c:'#00d4c4', p:'[DATA]    ', m:'Monitoring system online — 14 wards connected'},
+      {c:'#00d4c4', p:'[DATA]    ', m:'Water meter sync complete — 127.4 ML today'},
+      {c:'#f59e0b', p:'[WARNING] ', m:'Ward 5 Area Zone 3 — pressure below threshold (48 psi)'},
+      {c:'#e84343', p:'[CRITICAL]', m:'Pipe burst confirmed — Makhanda Ward 14 — teams dispatched'},
+    ].reverse().forEach(e => addRTLine(e));
+  }, 800);
+}
+
+startLiveData();
+
+function toggleRT() {
+  rtRunning = !rtRunning;
+  const btn = document.getElementById('rt-pause-btn');
+  if (btn) btn.textContent = rtRunning ? '⏸ Pause' : '▶ Resume';
+}
+
+// Google Sheets
+function connectGS() {
+  const url = document.getElementById('gs-url').value.trim();
+  const st = document.getElementById('gs-status');
+  if (!url) { st.innerHTML='<span style="color:var(--red)">⚠ Please enter a Google Sheets published URL</span>'; return; }
+  st.innerHTML='<span style="color:var(--amber)">⏳ Connecting…</span>';
+  setTimeout(() => {
+    st.innerHTML='<span style="color:var(--green)">✅ Connected! Refreshing every 30 seconds.</span>';
+    DS_SOURCES[3].status='connected'; renderDS();
+    addRTLine({c:'#16a34a', p:'[CONNECTED]', m:'Community reports portal connected'});
+  }, 1500);
+}
+
+// Forgot password
+function submitForgot() {
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) return;
+  document.getElementById('forgot-ok').style.display='block';
+  setTimeout(() => { document.getElementById('modal-forgot').classList.remove('on'); document.getElementById('forgot-ok').style.display='none'; }, 3000);
+}
+
+// ═══════════════════════════════════════════
+//  POWER BI STYLE REPORTING — Chart.js
+// ═══════════════════════════════════════════
+
+// Chart.js global defaults — dark theme
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
+
+// Store chart instances so we can destroy before re-rendering
+const CHARTS = {};
+
+function destroyChart(id) {
+  if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
+}
+
+// ── Report tab switcher ──────────────────────
+function switchRpt(name) {
+  ['water','performance','complaints','incidents'].forEach(r => {
+    document.getElementById('rpt-' + r).style.display = r === name ? '' : 'none';
+    const btn = document.getElementById('rb-' + r);
+    if (btn) btn.classList.toggle('on', r === name);
+  });
+  // Build the selected report
+  const builders = {
+    water: buildWater, performance: buildPerformance,
+    complaints: buildComplaints, incidents: buildIncidents,
+  };
+  if (builders[name]) builders[name]();
+}
+
+// ── Shared colour palette for charts ────────
+const C = {
+  teal:   '#00d4c4', gold: '#e8bc3a', red: '#e84343',
+  amber:  '#f59e0b', green: '#22c55e', blue: '#3b82f6',
+  purple: '#8b5cf6', pink: '#ec4899',
+  munis:  ['#00d4c4','#e8bc3a','#3b82f6','#22c55e','#f59e0b'],
+  months: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+};
+
+// ── KPI mini card HTML ───────────────────────
+function kpiCard(icon, label, value, color, trend) {
+  return `<div class="card acc" style="padding:13px">
+    <div class="clbl">${icon} ${label}</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:800;color:${color};line-height:1">${value}</div>
+    ${trend ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">${trend}</div>` : ''}
+  </div>`;
+}
+
+// ── Badge HTML ───────────────────────────────
+function badge(text, cls) {
+  return `<span class="bdg ${cls}">${text}</span>`;
+}
+
+// ═══════════════════════════════════════════
+//  WATER SERVICES REPORT
+// ═══════════════════════════════════════════
+function buildWater() {
+  const muniFilter = document.getElementById('ws-muni').value;
+  const months     = parseInt(document.getElementById('ws-period').value);
+  const allM       = Object.values(MUNI_DATA);
+  const filtered   = muniFilter === 'all' ? allM : [MUNI_DATA[muniFilter]];
+
+  // KPIs
+  const avgSupply  = Math.round(filtered.reduce((s,m) => s + m.supply, 0) / filtered.length);
+  const totalComp  = filtered.reduce((s,m) => s + m.comp, 0);
+  const avgDur     = (filtered.reduce((s,m) => s + m.dur, 0) / filtered.length).toFixed(1);
+  const totalInc   = filtered.reduce((s,m) => s + m.openInc, 0);
+  document.getElementById('ws-kpis').innerHTML =
+    kpiCard('💧','Avg Water Supply', avgSupply + '%', avgSupply >= 95 ? C.green : C.amber, '▲ District average') +
+    kpiCard('🔧','Open Infrastructure Issues', totalInc, totalInc > 8 ? C.red : C.amber, totalInc + ' active across zones') +
+    kpiCard('⏱️','Avg Outage Duration', avgDur + 'h', parseFloat(avgDur) <= 8 ? C.green : C.amber, 'IDP target: < 8 hours') +
+    kpiCard('📣','Open Complaints', totalComp, C.teal, 'Last 30 days');
+
+  // Monthly water supply line chart
+  const lbls = C.months.slice(0, months);
+  destroyChart('c-wsupply');
+  CHARTS['c-wsupply'] = new Chart(document.getElementById('c-wsupply'), {
+    type: 'line',
+    data: {
+      labels: lbls,
+      datasets: filtered.map((m, i) => ({
+        label: m.name,
+        data: lbls.map(() => m.supply * 1.2 + (Math.random() * 8 - 4)),
+        borderColor: C.munis[i % 5],
+        backgroundColor: C.munis[i % 5] + '18',
+        tension: 0.4, fill: true, pointRadius: 3,
+      }))
+    },
+    options: { responsive: true, plugins: { legend: { labels: { boxWidth: 10 } } },
+      scales: { y: { min: 70, max: 110, grid: { color: 'rgba(255,255,255,.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,.05)' } } } }
+  });
+
+  // Zone pressure bar chart
+  const zones = ['Zone 1\nMakhanda','Zone 2\nMakhanda East','Zone 3\nWard 9 Area','Zone 4\nWard 7 Area','Zone 5\nWard 14 Area'];
+  const pVals = [62, 58, 46, 31, 54];
+  const pCols = pVals.map(v => v >= 45 ? C.green : v >= 30 ? C.amber : C.red);
+  destroyChart('c-pressure');
+  CHARTS['c-pressure'] = new Chart(document.getElementById('c-pressure'), {
+    type: 'bar',
+    data: { labels: ['Zone 1','Zone 2','Zone 3','Zone 4','Zone 5'],
+      datasets: [{ label: 'Pressure (psi)', data: pVals,
+        backgroundColor: pCols, borderRadius: 5, borderSkipped: false }] },
+    options: { responsive: true, plugins: { legend: { display: false } },
+      scales: { y: { min: 0, max: 80, grid: { color: 'rgba(255,255,255,.05)' } },
+                x: { grid: { display: false } } } }
+  });
+
+  // Infrastructure table
+  document.getElementById('ws-tbl').innerHTML = filtered.map(m =>
+    `<tr><td>${m.ico} ${m.name}</td>
+     <td style="color:${m.supply>=95?C.green:C.amber}">${m.supply}%</td>
+     <td style="color:${m.openInc>6?C.red:C.amber}">${m.openInc}</td>
+     <td style="color:${m.dur<=8?C.green:C.amber}">${m.dur}h</td>
+     <td>${badge(m.stat, m.sc)}</td></tr>`
+  ).join('');
+
+  // Outage causes doughnut
+  destroyChart('c-causes');
+  CHARTS['c-causes'] = new Chart(document.getElementById('c-causes'), {
+    type: 'doughnut',
+    data: { labels: ['Burst Pipes','Pump Failure','Planned Maintenance','Power Outage','Unknown'],
+      datasets: [{ data: [38, 24, 18, 12, 8],
+        backgroundColor: [C.red, C.amber, C.blue, C.purple, '#475569'],
+        borderWidth: 2, borderColor: '#0c1a30', hoverOffset: 6 }] },
+    options: { responsive: true, cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, padding: 12 } } } }
+  });
+}
+
+// ═══════════════════════════════════════════
+//  PERFORMANCE REPORT
+// ═══════════════════════════════════════════
+function buildPerformance() {
+  const munis  = Object.values(MUNI_DATA);
+  const names  = munis.map(m => m.name);
+
+  // Performance scores bar
+  destroyChart('c-perfscores');
+  CHARTS['c-perfscores'] = new Chart(document.getElementById('c-perfscores'), {
+    type: 'bar',
+    data: { labels: names,
+      datasets: [
+        { label: 'Performance Score', data: munis.map(m => m.score),
+          backgroundColor: munis.map(m => m.score>=85?C.green:m.score>=75?C.teal:C.amber),
+          borderRadius: 6, borderSkipped: false },
+        { label: 'Target (85)', data: munis.map(() => 85),
+          type: 'line', borderColor: C.gold, borderDash: [5,4],
+          pointRadius: 0, fill: false }
+      ]},
+    options: { responsive: true,
+      plugins: { legend: { labels: { boxWidth: 10 } } },
+      scales: { y: { min: 50, max: 100, grid: { color: 'rgba(255,255,255,.05)' } },
+                x: { grid: { display: false } } } }
+  });
+
+  // Response time horizontal bar
+  destroyChart('c-resptime');
+  CHARTS['c-resptime'] = new Chart(document.getElementById('c-resptime'), {
+    type: 'bar',
+    data: { labels: names,
+      datasets: [
+        { label: 'Avg Response (h)', data: munis.map(m => parseFloat(m.avgR)),
+          backgroundColor: munis.map(m => parseFloat(m.avgR)<=4?C.green:parseFloat(m.avgR)<=6?C.amber:C.red),
+          borderRadius: 5, indexAxis: 'y' },
+        { label: 'IDP Target (8h)', data: munis.map(() => 8),
+          type: 'line', borderColor: C.gold, borderDash: [5,4],
+          pointRadius: 0, fill: false, indexAxis: 'y' }
+      ]},
+    options: { indexAxis: 'y', responsive: true,
+      plugins: { legend: { labels: { boxWidth: 10 } } },
+      scales: { x: { min: 0, max: 10, grid: { color: 'rgba(255,255,255,.05)' } },
+                y: { grid: { display: false } } } }
+  });
+
+  // Scorecard table
+  document.getElementById('perf-tbl').innerHTML = munis.map(m => {
+    const sc = m.score >= 85 ? [badge('Excellent','bdg-g')] : m.score >= 75 ? [badge('Good','bdg-t')] : [badge('Needs Attention','bdg-r')];
+    return `<tr>
+      <td>${m.ico} ${m.name}</td>
+      <td style="color:${m.supply>=95?C.green:C.amber}">${m.supply}%</td>
+      <td style="color:var(--text2)">≥ 95%</td>
+      <td style="color:${m.dur<=8?C.green:C.red}">${m.dur}h</td>
+      <td style="color:var(--text2)">≤ 8h</td>
+      <td style="color:${m.resolved>=95?C.green:C.amber}">${m.resolved}%</td>
+      <td><strong style="color:${m.score>=85?C.green:m.score>=75?C.teal:C.amber}">${m.score}/100</strong></td>
+      <td>${sc}</td></tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  COMPLAINTS REPORT
+// ═══════════════════════════════════════════
+function buildComplaints() {
+  const munis = Object.values(MUNI_DATA);
+  const names = munis.map(m => m.name.split(' ').slice(0,2).join(' '));
+
+  // Complaint volume bar
+  destroyChart('c-compvol');
+  CHARTS['c-compvol'] = new Chart(document.getElementById('c-compvol'), {
+    type: 'bar',
+    data: { labels: names,
+      datasets: [
+        { label: 'No Water Supply', data: munis.map(m => Math.round(m.comp * m.c[0]/100)),
+          backgroundColor: C.red, borderRadius: 4, stack: 'a' },
+        { label: 'Pipe Leaks', data: munis.map(m => Math.round(m.comp * m.c[1]/100)),
+          backgroundColor: C.amber, borderRadius: 4, stack: 'a' },
+        { label: 'Water Quality', data: munis.map(m => Math.round(m.comp * m.c[2]/100)),
+          backgroundColor: C.blue, borderRadius: 4, stack: 'a' },
+      ]},
+    options: { responsive: true,
+      plugins: { legend: { labels: { boxWidth: 10 } } },
+      scales: { x: { stacked: true, grid: { display: false } },
+                y: { stacked: true, grid: { color: 'rgba(255,255,255,.05)' } } } }
+  });
+
+  // Category doughnut — district total
+  const totals = [0,0,0];
+  munis.forEach(m => { totals[0]+=Math.round(m.comp*m.c[0]/100); totals[1]+=Math.round(m.comp*m.c[1]/100); totals[2]+=Math.round(m.comp*m.c[2]/100); });
+  destroyChart('c-compcat');
+  CHARTS['c-compcat'] = new Chart(document.getElementById('c-compcat'), {
+    type: 'doughnut',
+    data: { labels: ['No Water Supply','Pipe Leaks','Water Quality'],
+      datasets: [{ data: totals,
+        backgroundColor: [C.red, C.amber, C.blue],
+        borderWidth: 2, borderColor: '#0c1a30', hoverOffset: 8 }] },
+    options: { responsive: true, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } }
+  });
+
+  // Monthly trend line
+  const lbls = ['Jan','Feb','Mar','Apr','May','Jun'];
+  destroyChart('c-comptrend');
+  CHARTS['c-comptrend'] = new Chart(document.getElementById('c-comptrend'), {
+    type: 'line',
+    data: { labels: lbls,
+      datasets: [
+        { label: 'No Water Supply', data: [82,95,88,102,115,98], borderColor: C.red, tension: 0.4, fill: false, pointRadius: 3 },
+        { label: 'Pipe Leaks',      data: [64,71,68,75,82,79],  borderColor: C.amber, tension: 0.4, fill: false, pointRadius: 3 },
+        { label: 'Water Quality',   data: [38,42,36,44,51,48],  borderColor: C.blue, tension: 0.4, fill: false, pointRadius: 3 },
+      ]},
+    options: { responsive: true,
+      plugins: { legend: { labels: { boxWidth: 10 } } },
+      scales: { y: { min: 0, grid: { color: 'rgba(255,255,255,.05)' } },
+                x: { grid: { display: false } } } }
+  });
+}
+
+// ═══════════════════════════════════════════
+//  INCIDENTS REPORT
+// ═══════════════════════════════════════════
+function buildIncidents() {
+  const munis = Object.values(MUNI_DATA);
+  const totalOpen = munis.reduce((s,m)=>s+m.openInc,0);
+  const totalProg = munis.reduce((s,m)=>s+m.inProg,0);
+
+  document.getElementById('inc-kpis').innerHTML =
+    kpiCard('🔴','Total Open',  totalOpen, C.red,   'Across all municipalities') +
+    kpiCard('🟡','In Progress', totalProg, C.amber, 'Teams deployed') +
+    kpiCard('✅','Pending 30d', 156,       C.green, '↑ 8% vs last month') +
+    kpiCard('⏱️','Avg Response', '4.5h',    C.teal,  'IDP target: 8 hours');
+
+  // Incident types doughnut
+  destroyChart('c-inctype');
+  CHARTS['c-inctype'] = new Chart(document.getElementById('c-inctype'), {
+    type: 'doughnut',
+    data: { labels: ['Burst Pipe','No Supply','Pump Failure','Water Quality','Other'],
+      datasets: [{ data: [32,28,18,14,8],
+        backgroundColor: [C.red,C.amber,C.blue,C.purple,C.green],
+        borderWidth: 2, borderColor: '#0c1a30', hoverOffset: 8 }] },
+    options: { responsive: true, cutout: '58%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } }
+  });
+
+  // Resolution trend
+  destroyChart('c-incres');
+  CHARTS['c-incres'] = new Chart(document.getElementById('c-incres'), {
+    type: 'line',
+    data: { labels: ['Jan','Feb','Mar','Apr','May','Jun'],
+      datasets: [{
+        label: 'Resolution Rate (%)',
+        data: [88, 90, 87, 92, 94, 95],
+        borderColor: C.teal, backgroundColor: C.teal + '20',
+        tension: 0.4, fill: true, pointRadius: 4
+      }, {
+        label: 'Target (95%)',
+        data: [95,95,95,95,95,95],
+        borderColor: C.gold, borderDash: [5,4], pointRadius: 0, fill: false
+      }]},
+    options: { responsive: true,
+      plugins: { legend: { labels: { boxWidth: 10 } } },
+      scales: { y: { min: 80, max: 100, grid: { color: 'rgba(255,255,255,.05)' } },
+                x: { grid: { display: false } } } }
+  });
+
+  // Incident detail table
+  document.getElementById('inc-tbl2').innerHTML = munis.map(m => {
+    const sla = Math.round(95 - (parseFloat(m.avgR) - 3) * 4);
+    return `<tr>
+      <td>${m.ico} ${m.name}</td>
+      <td style="color:${m.openInc>6?C.red:C.amber}">${m.openInc}</td>
+      <td style="color:${C.amber}">${m.inProg}</td>
+      <td style="color:${C.green}">${Math.round(30 + m.score/5)}</td>
+      <td style="color:${parseFloat(m.avgR)<=5?C.green:C.amber}">${m.avgR}</td>
+      <td><strong style="color:${sla>=90?C.green:C.amber}">${sla}%</strong></td></tr>`;
+  }).join('');
+}
+
+
+// Live report embed loader
+function loadPBI() {
+  const url = document.getElementById('pbi-url').value.trim();
+  if (!url) return;
+  document.getElementById('pbi-frame-card').style.display = 'block';
+  document.getElementById('pbi-frame-lbl').textContent = '📈 Live Report';
+  document.getElementById('pbi-iframe').src = url;
+}
+
+// Auto-build the first report when the tab is opened
+// (called via showTab — trigger build on first open)
+let pbiBuilt = false;
+const origShowTab = showTab;
+showTab = function(name, btn) {
+  origShowTab(name, btn);
+  if (name === 'powerbi' && !pbiBuilt) {
+    pbiBuilt = true;
+    setTimeout(() => buildWater(), 120);
+  }
+};
+
+// ═══════════════════════════════════════════
+//  DISTRICT LANDING
+// ═══════════════════════════════════════════
+
+const DIST_SERVICES = [
+  { key:'water',      icon:'💧', name:'Water Supply',       unit:'% Coverage',   vals:{ward1:96,ward2:94,ward3:91,ward4:98,ward5:89,ward6:95,ward7:87,ward8:93,ward9:96,ward10:90,ward11:97,ward12:85,ward13:94,ward14:92}, thresh:[95,85], higherBetter:true },
+  { key:'sanitation', icon:'🚿', name:'Sanitation',          unit:'% Functional', vals:{ward1:93,ward2:91,ward3:88,ward4:96,ward5:84,ward6:94,ward7:81,ward8:90,ward9:95,ward10:86,ward11:96,ward12:79,ward13:92,ward14:89}, thresh:[90,80], higherBetter:true },
+  { key:'electricity',icon:'⚡', name:'Electricity',         unit:'% Uptime',     vals:{ward1:97,ward2:95,ward3:92,ward4:98,ward5:88,ward6:96,ward7:85,ward8:93,ward9:97,ward10:89,ward11:98,ward12:82,ward13:95,ward14:93}, thresh:[95,85], higherBetter:true },
+  { key:'emergency',  icon:'🚑', name:'Emergency Services',  unit:'Avg Response', vals:{ward1:12,ward2:14,ward3:16,ward4:10,ward5:20,ward6:13,ward7:22,ward8:15,ward9:11,ward10:18,ward11:10,ward12:24,ward13:13,ward14:17}, thresh:[15,20], higherBetter:false, suffix:'min' },
+  { key:'sewerage',   icon:'🔩', name:'Sewerage',            unit:'% Operational',vals:{ward1:92,ward2:89,ward3:86,ward4:95,ward5:82,ward6:93,ward7:79,ward8:88,ward9:94,ward10:84,ward11:96,ward12:76,ward13:91,ward14:87}, thresh:[90,80], higherBetter:true },
+  { key:'infra',      icon:'🏗️', name:'Infrastructure',      unit:'% In Service', vals:{ward1:90,ward2:87,ward3:84,ward4:93,ward5:80,ward6:91,ward7:77,ward8:86,ward9:92,ward10:82,ward11:94,ward12:74,ward13:89,ward14:85}, thresh:[85,75], higherBetter:true },
+];
+
+const DIST_ANOMALIES = [
+  { type:'crit', icon:'🔴', title:'Water Meter Bypass Detected — Ward 7', sub:'Meter ID: WM-1247 · Flow mismatch >40% · Possible illegal connection', time:'09:14' },
+  { type:'warn', icon:'⚠️', title:'Pressure Anomaly — Ward 12 Zone B', sub:'Expected: 45–80 psi · Current: 41 psi · Sensor MT-087 flagged', time:'10:02' },
+  { type:'crit', icon:'🔴', title:'Non-Revenue Water Spike — Ward 5', sub:'NRW reached 48% this hour · Possible burst main or meter fault', time:'10:45' },
+  { type:'warn', icon:'⚠️', title:'Sewerage Overflow Risk — Ward 3', sub:'Pump station PS-3 at 86% capacity · Manual inspection recommended', time:'11:18' },
+  { type:'info', icon:'💡', title:'Electricity Demand Surge — Ward 10', sub:'Load exceeding forecast by 14% · Monitor over next 2 hours', time:'11:42' },
+  { type:'warn', icon:'⚠️', title:'Emergency Response Delay — Ward 14', sub:'Avg response time 17 min · Target is 15 min · Unit shortage flagged', time:'12:05' },
+];
+
+const DIST_FEED_EVENTS = [
+  { c:'#dc2626', p:'CRITICAL', m:'Pipe burst confirmed — Ward 12 — Field team dispatched' },
+  { c:'#d97706', p:'WARNING',  m:'Ward 7 pressure below threshold — Zone B at 41 psi' },
+  { c:'#16a34a', p:'RESOLVED', m:'Sanitation repair complete — Ward 6 — 850 households restored' },
+  { c:'#2563eb', p:'UPDATE',   m:'Electricity load balancing active — Ward 4 grid stable' },
+  { c:'#d97706', p:'WARNING',  m:'NRW reading elevated — Ward 5 — investigation underway' },
+  { c:'#16a34a', p:'OK',       m:'Emergency services — all 14 wards reporting within SLA' },
+  { c:'#2563eb', p:'UPDATE',   m:'Water quality test passed — Ward 9 reservoir — safe for distribution' },
+  { c:'#dc2626', p:'ALERT',    m:'Sewerage pump fault — Ward 3 PS-3 — maintenance crew en route' },
+];
+
+let distFeedIdx = 0;
+
+function renderDistrictLanding() {
+  const munis = Object.values(MUNI_DATA);
+
+  // ── District KPI strip ────────────────────────────────
+  const totalInc   = munis.reduce((s,m) => s+m.openInc, 0);
+  const avgSupply  = Math.round(munis.reduce((s,m) => s+m.supply, 0) / munis.length);
+  const avgScore   = Math.round(munis.reduce((s,m) => s+m.score, 0) / munis.length);
+  const totalComp  = munis.reduce((s,m) => s+m.comp, 0);
+
+  document.getElementById('dist-kpi-strip').innerHTML = [
+    { val: avgSupply + '%', lbl: 'Avg Water Supply',     col: avgSupply>=95?'#16a34a':'#d97706' },
+    { val: totalInc,        lbl: 'Total Open Incidents', col: totalInc>20?'#dc2626':'#d97706' },
+    { val: totalComp,       lbl: 'Open Complaints (30d)',col: '#2563eb' },
+    { val: avgScore+'/100', lbl: 'District Perf. Score', col: avgScore>=80?'#16a34a':'#d97706' },
+    { val: '127 ML',        lbl: 'Water Supplied Today', col: '#00a896' },
+  ].map(k => `
+    <div class="dist-kpi">
+      <div class="dist-kpi-val" style="color:${k.col}">${k.val}</div>
+      <div class="dist-kpi-lbl">${k.lbl}</div>
+    </div>`).join('');
+
+  // ── Hero counters ─────────────────────────────────────
+  let ok=0, warn=0, crit=0;
+  DIST_SERVICES.forEach(svc => {
+    const avg = Object.values(svc.vals).reduce((s,v)=>s+v,0)/5;
+    const good = svc.higherBetter ? avg>=svc.thresh[0] : avg<=svc.thresh[0];
+    const bad  = svc.higherBetter ? avg<svc.thresh[1]  : avg>svc.thresh[1];
+    if (bad) crit++; else if (!good) warn++; else ok++;
+  });
+  document.getElementById('dist-hero-ok').textContent   = ok;
+  document.getElementById('dist-hero-warn').textContent = warn;
+  document.getElementById('dist-hero-crit').textContent = crit;
+
+  // ── Service status cards ──────────────────────────────
+  document.getElementById('dist-services').innerHTML = DIST_SERVICES.map(svc => {
+    const vals = Object.values(svc.vals);
+    const avg  = Math.round(vals.reduce((s,v)=>s+v,0)/vals.length);
+    const good = svc.higherBetter ? avg>=svc.thresh[0] : avg<=svc.thresh[0];
+    const bad  = svc.higherBetter ? avg<svc.thresh[1]  : avg>svc.thresh[1];
+    const cls  = bad ? 'svc-crit' : good ? 'svc-ok' : 'svc-warn';
+    const scls = bad ? 'crit' : good ? 'ok' : 'warn';
+    const slbl = bad ? 'Needs Attention' : good ? 'Operational' : 'Monitor';
+    const col  = bad ? '#dc2626' : good ? '#16a34a' : '#d97706';
+    const suffix = svc.suffix || '%';
+    const display = svc.suffix ? avg + ' ' + suffix : avg + '%';
+
+    // Mini per-municipality bar
+    const bars = Object.entries(svc.vals).map(([k,v]) => {
+      const pct = svc.higherBetter ? v : (100 - v);
+      const bc  = svc.higherBetter ? (v>=svc.thresh[0]?'#16a34a':v>=svc.thresh[1]?'#d97706':'#dc2626')
+                                   : (v<=svc.thresh[0]?'#16a34a':v<=svc.thresh[1]?'#d97706':'#dc2626');
+      return `<div style="flex:1;background:#e2e8f0;border-radius:3px;height:6px;overflow:hidden;" title="${MUNI_DATA[k].name}: ${v}${svc.suffix||'%'}">
+        <div style="height:100%;border-radius:3px;background:${bc};width:${Math.min(pct,100)}%;transition:width 1s;"></div></div>`;
+    }).join('');
+
+    return `
+    <div class="svc-card ${cls}">
+      <span class="svc-ico">${svc.icon}</span>
+      <div class="svc-name">${svc.name}</div>
+      <div class="svc-val" style="color:${col}">${display}</div>
+      <div class="svc-lbl">${svc.unit} · District Average</div>
+      <div class="svc-status ${scls}">
+        <span class="svc-sdot"></span> ${slbl}
+      </div>
+      <div style="display:flex;gap:3px;margin-top:10px;">${bars}</div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:3px;font-weight:600;">
+        <span style="font-size:8px">W1</span><span style="font-size:8px">W2</span><span style="font-size:8px">W3</span><span style="font-size:8px">W4</span><span style="font-size:8px">W5</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Meter anomalies ───────────────────────────────────
+  document.getElementById('dist-anomalies').innerHTML = DIST_ANOMALIES.map(a =>
+    `<div class="anomaly-row ${a.type==='warn'?'warn':a.type==='info'?'info':''}">
+      <span class="anomaly-ico">${a.icon}</span>
+      <div class="anomaly-main">
+        <div class="anomaly-title">${a.title}</div>
+        <div class="anomaly-sub">${a.sub}</div>
+      </div>
+      <div class="anomaly-time">${a.time}</div>
+    </div>`
+  ).join('');
+
+  // ── Municipality summary ──────────────────────────────
+  document.getElementById('dist-muni-summary').innerHTML = Object.entries(MUNI_DATA).map(([key,m]) => `
+    <div onclick="openFromDistrict('${key}')"
+      style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:white;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:9px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);"
+      onmouseover="this.style.boxShadow='var(--shadow-lg)';this.style.transform='translateY(-1px)'"
+      onmouseout="this.style.boxShadow='var(--shadow)';this.style.transform=''">
+      <span style="font-size:24px;">${m.ico}</span>
+      <div style="flex:1;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--ink);text-transform:uppercase;">${m.name}</div>
+        <div style="font-size:12px;color:var(--text2);">${m.openInc} open incidents · Avg response: ${m.avgR}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:${m.supply>=95?'#16a34a':m.supply>=90?'#d97706':'#dc2626'};">${m.supply}%</div>
+        <span class="bdg ${m.sc}">${m.stat}</span>
+      </div>
+    </div>`
+  ).join('');
+
+  // ── Seed feed ─────────────────────────────────────────
+  const feed = document.getElementById('dist-feed');
+  if (feed && feed.children.length === 0) {
+    DIST_FEED_EVENTS.forEach(e => addDistFeedLine(e));
+  }
+}
+
+function addDistFeedLine(ev) {
+  const feed = document.getElementById('dist-feed');
+  if (!feed) return;
+  const t = new Date().toTimeString().slice(0,8);
+  const d = document.createElement('div');
+  d.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:13px;-webkit-font-smoothing:antialiased;';
+  d.innerHTML = `<span style="color:#6b7280;font-size:13px;white-space:nowrap;font-weight:600;">${t}</span>
+    <span style="font-weight:800;color:${ev.c};font-size:13px;white-space:nowrap;min-width:70px;text-transform:uppercase;">[${ev.p}]</span>
+    <span style="color:#000000;font-size:14px;font-weight:500;">${ev.m}</span>`;
+  feed.insertBefore(d, feed.firstChild);
+  if (feed.children.length > 12) feed.removeChild(feed.lastChild);
+}
+
+// Feed auto-updates every 8 seconds
+setInterval(() => {
+  const feedEl = document.getElementById('dist-feed');
+  if (!feedEl || document.getElementById('s-district').style.display === 'none') return;
+  distFeedIdx = (distFeedIdx + 1) % DIST_FEED_EVENTS.length;
+  addDistFeedLine(DIST_FEED_EVENTS[distFeedIdx]);
+}, 8000);
+
+// District clock
+setInterval(() => {
+  const el = document.getElementById('dist-clock');
+  if (el) el.textContent = new Date().toLocaleString('en-ZA',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
+
+// ── INIT ─────────────────────────────────────────────────
+showScreen('login');
+</script>
+</body>
+</html>
